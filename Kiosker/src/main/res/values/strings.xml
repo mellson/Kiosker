@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kiosker</string>
+    <string name="app_name_settings">Settings</string>
+    <string name="app_name_log">Device Logs</string>
+</resources>
