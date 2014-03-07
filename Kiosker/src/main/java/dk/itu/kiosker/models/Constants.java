@@ -10,23 +10,22 @@ import dk.itu.kiosker.utils.RootHelper;
 public class Constants {
     public static final long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
     public static final long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
-    public static String TAG = "Kiosker";
+    public static final String TAG = "Kiosker";
+    public static final String BASE_SETTINGS = "kiosker_settings";
+    public static final String JSON_BASE_URL_ID = "json_base_url";
+    public static final String FILE_ENDING = ".json";
+    public static final String KIOSKER_REFRESH_SETTINGS_ID = "refreshSettings";
+    public static final String KIOSKER_RESET_DEVICE_ID = "resetDevice";
+    public static final String SAFE_JSON = "kiosker_safe_json";
+    public static final String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
+    public static final String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    private static final String INITIAL_RUN = "initial_run_of_application";
     public static String JSON_BASE_URL = "";
-    public static String BASE_SETTINGS = "kiosker_settings";
-    public static String JSON_BASE_URL_ID = "json_base_url";
-    public static String FILE_ENDING = ".json";
-    public static String INITIAL_RUN = "initial_run_of_application";
-    public static String KIOSKER_REFRESH_SETTINGS_ID = "refreshSettings";
-    public static String KIOSKER_RESET_DEVICE_ID = "resetDevice";
-    public static String SAFE_JSON = "kiosker_safe_json";
-    public static String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
-    public static String KIOSKER_DEVICE_ID = "kiosker_device_id";
     public static String settingsText = "This is a dummy settings text";
 
     public static Boolean getAllowHome(Activity activity) {
         SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
-        Boolean allowHome = prefs.getBoolean(KIOSKER_ALLOW_HOME_ID, false);
-        return allowHome;
+        return prefs.getBoolean(KIOSKER_ALLOW_HOME_ID, false);
     }
 
     public static void setAllowHome(Activity activity, Boolean allowHome) {
@@ -38,8 +37,7 @@ public class Constants {
     public static String getDeviceId(Activity activity) {
         // TODO test evt SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
-        String deviceId = prefs.getString(KIOSKER_DEVICE_ID, "");
-        return deviceId;
+        return prefs.getString(KIOSKER_DEVICE_ID, "");
     }
 
     public static void setDeviceId(Activity activity, String deviceId) {
@@ -50,8 +48,7 @@ public class Constants {
 
     public static String getJsonBaseUrl(Activity activity) {
         SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
-        String baseUrl = prefs.getString(JSON_BASE_URL_ID, "");
-        return baseUrl;
+        return prefs.getString(JSON_BASE_URL_ID, "");
     }
 
     public static void setJsonBaseUrl(Activity activity, String baseUrl) {

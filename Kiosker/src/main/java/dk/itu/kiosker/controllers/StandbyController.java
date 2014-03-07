@@ -17,11 +17,11 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class StandbyController {
-    private MainActivity mainActivity;
+class StandbyController {
+    private final MainActivity mainActivity;
+    private final ArrayList<Subscriber> subscribers;
     private Subscriber idleDimSubscriber;
     private Observable idleDimObservable;
-    private ArrayList<Subscriber> subscribers;
     //region Device sleep methods.
     private PowerManager.WakeLock fullWakeLock;
     private PowerManager.WakeLock partialWakeLock;
@@ -92,9 +92,11 @@ public class StandbyController {
             @Override
             public void onNext(Object o) {
                 if (dimScreen) {
+                    Log.d(Constants.TAG, "Starting standby.");
                     mainActivity.currentlyInStandbyPeriod = true;
                     removeKeepScreenOn();
                 } else {
+                    Log.d(Constants.TAG, "Ending standby.");
                     mainActivity.currentlyInStandbyPeriod = false;
                     wakeDevice();
                     unDimDevice();
@@ -107,7 +109,7 @@ public class StandbyController {
      * This method removes the request to keep the screen on.
      * This will make the device go to sleep after the normal screen timeout setting on the device.
      */
-    public void removeKeepScreenOn() {
+    void removeKeepScreenOn() {
         WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
         params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
         mainActivity.getWindow().setAttributes(params);
@@ -126,6 +128,7 @@ public class StandbyController {
 
             @Override
             public void onNext(Object o) {
+                Log.d(Constants.TAG, "Idle time started.");
                 dimDevice();
                 if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)
                     mainActivity.backToMainActivity();
@@ -161,7 +164,7 @@ public class StandbyController {
             Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(getIdleDimSubscriber());
     }
 
-    protected void keepScreenOn() {
+    void keepScreenOn() {
         WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
         params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
         mainActivity.getWindow().setAttributes(params);
@@ -172,7 +175,7 @@ public class StandbyController {
     /**
      * This method creates the wake locks we need for later waking of the device.
      */
-    protected void createWakeLocks() {
+    void createWakeLocks() {
         PowerManager powerManager = (PowerManager) mainActivity.getSystemService(Context.POWER_SERVICE);
         fullWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), Constants.TAG + "FULL WAKE LOCK");
         partialWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.TAG + " PARTIAL WAKE LOCK");
@@ -181,7 +184,7 @@ public class StandbyController {
     /**
      * Wakes the device from sleep and sets the screen to never timeout.
      */
-    public void wakeDevice() {
+    void wakeDevice() {
         fullWakeLock.acquire();
         KeyguardManager keyguardManager = (KeyguardManager) mainActivity.getSystemService(Context.KEYGUARD_SERVICE);
         KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");

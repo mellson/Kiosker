@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
     public Boolean showingSettings = false;
     public boolean currentlyInStandbyPeriod;
     public boolean currentlyScreenSaving;
-    protected LinearLayout mainLayout;
+    LinearLayout mainLayout;
     private SettingsController settingsController;
     private Subscriber settingsSubscription;
     private StatusUpdater statusUpdater;

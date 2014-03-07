@@ -12,7 +12,8 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class KioskerWebViewClient extends WebViewClient {
-    private long errorReloadMins;
+    private final long errorReloadMins;
+    private boolean errorReloaderStarted;
 
     public KioskerWebViewClient(long errorReloadMins) {
         this.errorReloadMins = errorReloadMins;
@@ -36,11 +37,13 @@ public class KioskerWebViewClient extends WebViewClient {
 
     @Override
     public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
-        if (errorReloadMins > 0) {
+        if (errorReloadMins > 0 && !errorReloaderStarted) {
+            errorReloaderStarted = true;
             Observable.timer(errorReloadMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                 @Override
                 public void call(Long aLong) {
                     Log.d(Constants.TAG, "Reloading after error");
+                    errorReloaderStarted = false;
                     view.reload();
                 }
             });

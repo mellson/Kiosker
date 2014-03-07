@@ -56,14 +56,6 @@ public class Time {
         return betweenTimes;
     }
 
-    public int getHours() {
-        return hours;
-    }
-
-    public int getMinutes() {
-        return minutes;
-    }
-
     @Override
     public String toString() {
         String hourString = hours < 10 ? "0" + hours : "" + hours;

@@ -17,12 +17,12 @@ public class JsonFetcher {
     // Jackson mapper used to parse the json.
     public static final ObjectMapper mapper = new ObjectMapper(new JsonFactory()).configure(JsonParser.Feature.ALLOW_COMMENTS, true);
     // The rest adapter that will call the server.
-    private static RestAdapter restAdapter = new RestAdapter.Builder()
+    private static final RestAdapter restAdapter = new RestAdapter.Builder()
             .setEndpoint(Constants.JSON_BASE_URL)
             .setConverter(new JacksonConverter(mapper))
             .build();
     // The manager that ties everything together and lets us call our interface method.
-    private static JsonControllerService jsonController = restAdapter.create(JsonControllerService.class);
+    private static final JsonControllerService jsonController = restAdapter.create(JsonControllerService.class);
 
     // Get the json observable from our server.
     public static Observable<LinkedHashMap> getObservableMap(String jsonPath) {

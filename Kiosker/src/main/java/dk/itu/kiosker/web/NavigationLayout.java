@@ -2,6 +2,7 @@ package dk.itu.kiosker.web;
 
 import android.animation.Animator;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -14,21 +15,22 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.models.Constants;
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 
 public class NavigationLayout extends LinearLayout {
     private final Button backButton;
     private final Button forwardButton;
     private final Button homeButton;
-
+    private final WebView webView;
+    private final Observable<Long> navigationHideObservable = Observable.timer(Constants.NAVIGATION_ONSCREEN_TIME_SECONDS, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread());
+    private boolean firstTimeHere = true;
     private String homeUrl;
-    private WebView webView;
+    private Subscriber<Long> navigationHideSubscriber;
 
-    public NavigationLayout(Context context, final WebView webView, final String homeUrl, String title) {
+    public NavigationLayout(Context context, final WebView webView, String title) {
         super(context);
         this.webView = webView;
-        this.homeUrl = homeUrl;
 
         backButton = new Button(context);
         backButton.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -77,24 +79,47 @@ public class NavigationLayout extends LinearLayout {
      *
      * @return true if we are not on the home screen.
      */
-    public void hideNavigation() {
+    void hideNavigation() {
         if (this.getAlpha() > 0)
             animateView(this, true);
     }
 
     public void showNavigation() {
-        if (webView.getUrl() != homeUrl) {
+        // The first time a user tries to navigate we set the home url to the current one on display.
+        if (firstTimeHere) {
+            homeUrl = webView.getUrl();
+            firstTimeHere = false;
+        }
+        if (!webView.getUrl().equals(homeUrl)) {
             backButton.setEnabled(webView.canGoBack());
             forwardButton.setEnabled(webView.canGoForward());
             animateView(this, false);
-
-            Observable.timer(Constants.NAVIGATION_ONSCREEN_TIME_SECONDS, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
-                @Override
-                public void call(Long aLong) {
-                    hideNavigation();
-                }
-            });
+            if (navigationHideSubscriber != null && !navigationHideSubscriber.isUnsubscribed()) {
+                navigationHideSubscriber.unsubscribe();
+                navigationHideObservable.subscribe(getNavigationHideSubscriber());
+            } else
+                navigationHideObservable.subscribe(getNavigationHideSubscriber());
         }
+    }
+
+    private Subscriber<Long> getNavigationHideSubscriber() {
+        navigationHideSubscriber = new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(Constants.TAG, "Error while trying to hide navigation controls.", e);
+            }
+
+            @Override
+            public void onNext(Long aLong) {
+                hideNavigation();
+            }
+        };
+        return navigationHideSubscriber;
     }
 
     private void animateView(final View view, final boolean hide) {

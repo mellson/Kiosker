@@ -1,5 +1,6 @@
 package dk.itu.kiosker.controllers;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -27,29 +28,24 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class WebController {
-    private MainActivity mainActivity;
-    private Date lastTap;
-    private int tapsToOpenSettings = 5;
+class WebController {
+    private final MainActivity mainActivity;
+    private final int tapsToOpenSettings = 5;
     private int taps = tapsToOpenSettings;
-
     // Has our main web view (home) at index 0 and the sites at index 1
-    private ArrayList<WebView> webViews;
-
+    private final ArrayList<WebView> webViews;
+    private final ArrayList<Subscriber> subscribers;
+    private final ArrayList<NavigationLayout> navigationLayouts;
+    private Date lastTap;
     private ArrayList<String> homeWebPages;
     private ArrayList<String> sitesWebPages;
     private ArrayList<String> screenSaverWebPages;
-    private ArrayList<Subscriber> subscribers;
     private int reloadPeriodMins;
     private int errorReloadMins;
-
     // Screen saver subscription
     private Subscriber screenSaverSubscriber;
     private Observable screenSaverObservable;
     private int screenSaveLengthMins;
-    private boolean wasScreenSaving;
-
-    private ArrayList<NavigationLayout> navigationLayouts;
 
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
@@ -114,6 +110,7 @@ public class WebController {
                     @Override
                     public void onNext(Long l) {
                         if (webViews.size() > 1) {
+                            Log.d(Constants.TAG, "Cycling secondary screen.");
                             String url = sitesWebPages.get((index += 2) % sitesWebPages.size());
                             webViews.get(1).loadUrl(url);
                         } else
@@ -152,7 +149,8 @@ public class WebController {
 
     /**
      * Setup the WebViews we need.
-     *  @param homeUrl
+     *
+     * @param homeUrl
      * @param title
      * @param weight  how much screen estate should this main take?
      */
@@ -162,12 +160,12 @@ public class WebController {
         webView.loadUrl(homeUrl);
         addTapToSettings(webView);
         if (reloadPeriodMins > 0) {
-            Subscriber s = reloadSubscriber();
-            subscribers.add(s);
+            Subscriber<Long> reloadSubscriber = reloadSubscriber(webView);
+            subscribers.add(reloadSubscriber);
             Observable.timer(reloadPeriodMins, TimeUnit.MINUTES)
                     .repeat()
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(s);
+                    .subscribe(reloadSubscriber);
         }
 
         // A frame layout enables us to overlay the navigation on the web view.
@@ -176,7 +174,7 @@ public class WebController {
         frameLayout.setLayoutParams(params);
 
         // Add navigation options to the web view.
-        NavigationLayout navigationLayout = new NavigationLayout(mainActivity, webView, webView.getUrl(), title);
+        NavigationLayout navigationLayout = new NavigationLayout(mainActivity, webView, title);
         navigationLayout.setAlpha(0);
         navigationLayouts.add(navigationLayout);
 
@@ -188,9 +186,10 @@ public class WebController {
 
     /**
      * Get subscriber for reloading the webview.
+     * @param webView
      */
-    private Subscriber<WebView> reloadSubscriber() {
-        return new Subscriber<WebView>() {
+    private Subscriber<Long> reloadSubscriber(final WebView webView) {
+        return new Subscriber<Long>() {
             @Override
             public void onCompleted() {
 
@@ -202,7 +201,8 @@ public class WebController {
             }
 
             @Override
-            public void onNext(WebView webView) {
+            public void onNext(Long aLong) {
+                Log.d(Constants.TAG, String.format("Reloading web view with url %s.", webView.getUrl()));
                 webView.reload();
             }
         };
@@ -213,12 +213,13 @@ public class WebController {
      *
      * @return a WebView with the specified weight.
      */
+    @SuppressLint("SetJavaScriptEnabled")
     private WebView getWebView() {
+        WebView.setWebContentsDebuggingEnabled(true);
         final WebView webView = new WebView(mainActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
         webView.setWebChromeClient(new KioskerWebChromeClient());
         webView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        webView.setWebContentsDebuggingEnabled(true);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setBuiltInZoomControls(true);
@@ -226,13 +227,14 @@ public class WebController {
         webSettings.setDomStorageEnabled(true);
         webSettings.setAppCacheEnabled(true);
         webSettings.setDatabaseEnabled(true);
-        webSettings.setGeolocationDatabasePath("/data/data/Kiosker");
         return webView;
     }
 
 
     /**
      * Add our secret taps for opening settings to a WebView.
+     * Also adding touch recognition for restarting scheduled tasks
+     * and showing navigation ui.
      */
     private void addTapToSettings(WebView webView) {
         webView.setOnTouchListener(new View.OnTouchListener() {
@@ -263,13 +265,11 @@ public class WebController {
 
                     lastTap = now;
                 }
-                // When the user lifts his finger, restart all scheduled tasks.
-                else if (event.getAction() == MotionEvent.ACTION_UP)
+                // When the user lifts his finger, restart all scheduled tasks and show our navigation.
+                else if (event.getAction() == MotionEvent.ACTION_UP) {
                     mainActivity.startScheduledTasks();
-
-                    // When the user moves his finger on the view show our navigation.
-                else if (event.getAction() == MotionEvent.ACTION_MOVE)
                     navigationLayouts.get(webViews.indexOf(v)).showNavigation();
+                }
                 return false;
             }
         });
@@ -308,6 +308,64 @@ public class WebController {
         });
     }
 
+    public void startScreenSaverSubscription() {
+        // Restart the idle time out if we are not in the standby period.
+        if (screenSaverObservable != null && !mainActivity.currentlyInStandbyPeriod)
+            screenSaverObservable.subscribe(getScreenSaverSubscriber());
+    }
+
+    public void stopScreenSaverSubscription() {
+        screenSaverSubscriber.unsubscribe();
+        if (mainActivity.currentlyScreenSaving) {
+            mainActivity.currentlyScreenSaving = false;
+            mainActivity.refreshDevice();
+        }
+    }
+
+    Subscriber<Long> getScreenSaverSubscriber() {
+        screenSaverSubscriber = new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+                Observable.timer(screenSaveLengthMins, TimeUnit.MINUTES)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Long>() {
+                            @Override
+                            public void call(Long aLong) {
+                                Log.d(Constants.TAG, "Stopping screensaver.");
+                                // Here we are finished screen saving and we return to the normal layout.
+                                mainActivity.currentlyScreenSaving = false;
+                                mainActivity.refreshDevice();
+                            }
+                        });
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(Constants.TAG, "Error while screen saving.", e);
+            }
+
+            @Override
+            public void onNext(Long l) {
+                if (!screenSaverWebPages.isEmpty()) {
+                    mainActivity.currentlyScreenSaving = true;
+
+                    Random rnd = new Random();
+                    int randomIndex = rnd.nextInt(screenSaverWebPages.size() / 2) * 2;
+
+                    // Clean current view .
+                    mainActivity.cleanUpMainView();
+
+                    // Make a new full screen web view with a random url from the screen saver urls.
+                    setupWebView(screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
+
+                    Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex + 1)));
+                } else
+                    unsubscribe();
+            }
+        };
+        return screenSaverSubscriber;
+    }
+
     private float layoutTranslator(int layout, boolean mainWebPage) {
         switch (layout) {
             case 1:
@@ -333,62 +391,5 @@ public class WebController {
                 else
                     return 0f;
         }
-    }
-
-    public void startScreenSaverSubscription() {
-        // Restart the idle time out if we are not in the standby period.
-        if (screenSaverObservable != null && !mainActivity.currentlyInStandbyPeriod)
-            screenSaverObservable.subscribe(getScreenSaverSubscriber());
-    }
-
-    public void stopScreenSaverSubscription() {
-        mainActivity.currentlyScreenSaving = false;
-        screenSaverSubscriber.unsubscribe();
-        if (wasScreenSaving) {
-            wasScreenSaving = false;
-            mainActivity.refreshDevice();
-        }
-    }
-
-    public Subscriber<Long> getScreenSaverSubscriber() {
-        screenSaverSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-                Observable.timer(screenSaveLengthMins, TimeUnit.MINUTES)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Long>() {
-                            @Override
-                            public void call(Long aLong) {
-                                // Here we are finished screen saving and we return to the normal layout.
-                                mainActivity.currentlyScreenSaving = false;
-                                mainActivity.refreshDevice();
-                            }
-                        });
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while screen saving.", e);
-            }
-
-            @Override
-            public void onNext(Long l) {
-                if (!screenSaverWebPages.isEmpty()) {
-                    mainActivity.currentlyScreenSaving = true;
-                    wasScreenSaving = true;
-
-                    Random rnd = new Random();
-                    int randomIndex = rnd.nextInt(screenSaverWebPages.size() / 2) * 2;
-
-                    // Clean current view .
-                    mainActivity.cleanUpMainView();
-
-                    // Make a new full screen web view with a random url from the screen saver urls.
-                    setupWebView(screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
-                } else
-                    unsubscribe();
-            }
-        };
-        return screenSaverSubscriber;
     }
 }

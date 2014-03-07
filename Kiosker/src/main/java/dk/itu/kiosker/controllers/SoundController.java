@@ -14,16 +14,16 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class SoundController {
-    private Context context;
-    private ArrayList<Subscriber> subscribers;
+class SoundController {
+    private final Context context;
+    private final ArrayList<Subscriber> subscribers;
 
     public SoundController(Context context, ArrayList<Subscriber> subscribers) {
         this.context = context;
         this.subscribers = subscribers;
     }
 
-    protected void handleSoundSettings(LinkedHashMap settings) {
+    void handleSoundSettings(LinkedHashMap settings) {
         Object mute = settings.get("mute");
         if (mute != null) {
             if ((Boolean) mute) {
@@ -77,9 +77,7 @@ public class SoundController {
     private Subscriber<Integer> setVolumeSubscriber(final int volume) {
         return new Subscriber<Integer>() {
             @Override
-            public void onCompleted() {
-                Log.d(Constants.TAG, "Finished setting volume.");
-            }
+            public void onCompleted() {}
 
             @Override
             public void onError(Throwable e) {
@@ -88,6 +86,7 @@ public class SoundController {
 
             @Override
             public void onNext(Integer integer) {
+                Log.d(Constants.TAG, String.format("Setting volume to %d%%.", volume));
                 setVolume(volume);
             }
         };
@@ -99,7 +98,5 @@ public class SoundController {
                 AudioManager.STREAM_MUSIC,
                 (int) (0.15 * volume),
                 0);
-
-        Log.d(Constants.TAG, "Setting the device volume to " + String.valueOf(volume) + "%.");
     }
 }

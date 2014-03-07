@@ -33,7 +33,7 @@ public class OnlineSettings {
     }
 
     // Observer we use to consume the base json settings.
-    public static Observer<LinkedHashMap> baseSettingsObserver(final MainActivity mainActivity) {
+    private static Observer<LinkedHashMap> baseSettingsObserver(final MainActivity mainActivity) {
         return new Observer<LinkedHashMap>() {
             @Override
             public void onCompleted() {
@@ -83,7 +83,7 @@ public class OnlineSettings {
     }
 
     // Observer we use to consume the device specific json settings.
-    public static Observer<LinkedHashMap> deviceSpecificSettingsObserver(final MainActivity mainActivity) {
+    private static Observer<LinkedHashMap> deviceSpecificSettingsObserver(final MainActivity mainActivity) {
         return new Observer<LinkedHashMap>() {
             @Override
             public void onCompleted() {
@@ -95,7 +95,7 @@ public class OnlineSettings {
             @Override
             public void onError(Throwable throwable) {
                 Log.e(Constants.TAG, "Error while getting device specific json settings.", throwable);
-                Toast.makeText(mainActivity, "Error while getting device specific json settings.", Toast.LENGTH_LONG);
+                Toast.makeText(mainActivity, "Error while getting device specific json settings.", Toast.LENGTH_LONG).show();
                 mainActivity.handleSettings(currentSettings);
             }
 

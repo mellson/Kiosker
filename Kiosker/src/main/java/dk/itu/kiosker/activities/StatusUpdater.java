@@ -13,7 +13,7 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class StatusUpdater {
+class StatusUpdater {
     private TextView mainStatusTextView;
     private TextView subStatusTextView;
     private LinearLayout mainLayout;

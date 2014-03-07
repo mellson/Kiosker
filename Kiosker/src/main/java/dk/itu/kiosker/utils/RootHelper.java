@@ -23,15 +23,15 @@ public class RootHelper {
     }
 
     public static Boolean checkRootMethod3() {
-        return new RootHelper().executeCommand(SHELL_CMD.check_su_binary) != null;
+        return new RootHelper().executeCommand() != null;
     }
 
-    public ArrayList<String> executeCommand(SHELL_CMD shellCmd) {
+    public ArrayList<String> executeCommand() {
         String line = null;
         ArrayList<String> fullResponse = new ArrayList<String>();
         Process localProcess = null;
         try {
-            localProcess = Runtime.getRuntime().exec(shellCmd.command);
+            localProcess = Runtime.getRuntime().exec(SHELL_CMD.check_su_binary.command);
         } catch (Exception e) {
             return null;
         }

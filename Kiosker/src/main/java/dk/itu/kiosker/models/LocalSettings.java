@@ -40,13 +40,11 @@ public class LocalSettings {
         String restoredJson = prefs.getString(Constants.SAFE_JSON, null);
         if (restoredJson != null) {
             try {
-                LinkedHashMap json = JsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
-                return json;
+                return JsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
             } catch (IOException e) {
                 Log.e(Constants.TAG, "Error while loading safe settings.", e);
             }
         }
-        LinkedHashMap emptyMap = new LinkedHashMap();
-        return emptyMap;
+        return new LinkedHashMap();
     }
 }

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.models.Constants;
 
-public class HardwareController {
+class HardwareController {
     private final MainActivity mainActivity;
     private Boolean settingsAreParsed = false;
 

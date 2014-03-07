@@ -20,13 +20,13 @@ public class ActivityController {
      * If it was it does nothing.
      * If the change was unwanted we go back to this activity after a given period of time.
      */
-    public static void handleMainActivityGoingAway(final MainActivity context) {
-        if (!showingAllowedActivity(context))
+    public static void handleMainActivityGoingAway(final MainActivity mainActivity) {
+        if (!showingAllowedActivity(mainActivity))
             getCountdownString().subscribe(new Subscriber<String>() {
                 @Override
                 public void onCompleted() {
-                    if (!showingAllowedActivity(context))
-                        backToMainActivity(context);
+                    if (!showingAllowedActivity(mainActivity))
+                        backToMainActivity(mainActivity);
                 }
 
                 @Override
@@ -36,8 +36,8 @@ public class ActivityController {
 
                 @Override
                 public void onNext(String msg) {
-                    if (!showingAllowedActivity(context))
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                    if (!showingAllowedActivity(mainActivity))
+                        Toast.makeText(mainActivity, msg, Toast.LENGTH_SHORT).show();
                     else
                         unsubscribe();
                 }
@@ -77,7 +77,7 @@ public class ActivityController {
      *
      * @return true if we are showing an activity we want.
      */
-    public static Boolean showingAllowedActivity(MainActivity mainActivity) {
+    private static Boolean showingAllowedActivity(MainActivity mainActivity) {
         ActivityManager am = (ActivityManager) mainActivity.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
         Boolean showingMainActivity = taskInfo.get(0).topActivity.getClassName().contains(MainActivity.class.getName());
