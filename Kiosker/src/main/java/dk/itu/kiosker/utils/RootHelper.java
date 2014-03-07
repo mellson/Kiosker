@@ -26,16 +26,6 @@ public class RootHelper {
         return new RootHelper().executeCommand(SHELL_CMD.check_su_binary) != null;
     }
 
-    public static enum SHELL_CMD {
-        check_su_binary(new String[]{"/system/xbin/which", "su"});
-
-        String[] command;
-
-        SHELL_CMD(String[] command) {
-            this.command = command;
-        }
-    }
-
     public ArrayList<String> executeCommand(SHELL_CMD shellCmd) {
         String line = null;
         ArrayList<String> fullResponse = new ArrayList<String>();
@@ -57,5 +47,15 @@ public class RootHelper {
             e.printStackTrace();
         }
         return fullResponse;
+    }
+
+    public static enum SHELL_CMD {
+        check_su_binary(new String[]{"/system/xbin/which", "su"});
+
+        String[] command;
+
+        SHELL_CMD(String[] command) {
+            this.command = command;
+        }
     }
 }

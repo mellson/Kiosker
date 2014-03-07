@@ -36,8 +36,8 @@
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/app_name_settings"
-            android:windowSoftInputMode="stateHidden"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activities.LogActivity"
             android:label="@string/app_name_settings"

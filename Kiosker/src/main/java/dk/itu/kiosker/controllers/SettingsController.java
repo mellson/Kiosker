@@ -14,12 +14,14 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class SettingsController {
+    // We wait 5 seconds before starting scheduled tasks after a touch event.
+    Observable<Long> delayedScheduledTasksObservable = Observable.timer(5, TimeUnit.SECONDS).subscribeOn(AndroidSchedulers.mainThread());
+    Subscriber<Long> delayedScheduledTasksSubscription;
     private MainActivity mainActivity;
     private SoundController soundController;
     private WebController webController;
     private StandbyController standbyController;
     private HardwareController hardwareController;
-
     // List of the scheduled settings
     private ArrayList<Subscriber> subscribers;
 
@@ -75,10 +77,6 @@ public class SettingsController {
         handleSettings(LocalSettings.getSafeJson(mainActivity));
     }
 
-    // We wait 5 seconds before starting scheduled tasks after a touch event.
-    Observable<Long> delayedScheduledTasksObservable = Observable.timer(5, TimeUnit.SECONDS).subscribeOn(AndroidSchedulers.mainThread());
-
-    Subscriber<Long> delayedScheduledTasksSubscription;
     private Subscriber getDelayedScheduledTasksSubscription() {
         delayedScheduledTasksSubscription = new Subscriber<Long>() {
             @Override

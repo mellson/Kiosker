@@ -9,16 +9,15 @@ import dk.itu.kiosker.models.Constants;
 
 public class HardwareController {
     private final MainActivity mainActivity;
-
-    // Is used to indicate whether or not the navigation ui should be hidden or not.
-    private Boolean allowHome() {
-        return Constants.getAllowHome(mainActivity);
-    }
-
     private Boolean settingsAreParsed = false;
 
     public HardwareController(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+    }
+
+    // Is used to indicate whether or not the navigation ui should be hidden or not.
+    private Boolean allowHome() {
+        return Constants.getAllowHome(mainActivity);
     }
 
     /**

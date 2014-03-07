@@ -24,13 +24,13 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class MainActivity extends Activity {
-    private SettingsController settingsController;
-    protected LinearLayout mainLayout;
-    private Subscriber settingsSubscription;
     public Boolean showingSettings = false;
-    private StatusUpdater statusUpdater;
     public boolean currentlyInStandbyPeriod;
     public boolean currentlyScreenSaving;
+    protected LinearLayout mainLayout;
+    private SettingsController settingsController;
+    private Subscriber settingsSubscription;
+    private StatusUpdater statusUpdater;
 
     //region Create methods.
     @Override
@@ -221,7 +221,8 @@ public class MainActivity extends Activity {
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        );
     }
 
     public void createSecretMenuButton() {

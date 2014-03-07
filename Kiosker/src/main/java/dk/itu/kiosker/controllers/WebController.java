@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
+import dk.itu.kiosker.web.NavigationLayout;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -46,6 +49,8 @@ public class WebController {
     private int screenSaveLengthMins;
     private boolean wasScreenSaving;
 
+    private ArrayList<NavigationLayout> navigationLayouts;
+
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
         this.subscribers = subscribers;
@@ -56,6 +61,7 @@ public class WebController {
         homeWebPages = new ArrayList<>();
         sitesWebPages = new ArrayList<>();
         screenSaverWebPages = new ArrayList<>();
+        navigationLayouts = new ArrayList<>();
     }
 
     public void handleWebSettings(LinkedHashMap settings) {
@@ -75,15 +81,15 @@ public class WebController {
             float weight = layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
             if (weight < 1.0 && (sitesWebPages == null || sitesWebPages.isEmpty()))
-                setupWebView(homeWebPages.get(0), 1.0f);
+                setupWebView(homeWebPages.get(0), homeWebPages.get(1), 1.0f);
             if (weight > 0.0)
-                setupWebView(homeWebPages.get(0), weight);
+                setupWebView(homeWebPages.get(0), homeWebPages.get(1), weight);
         }
 
         if (!sitesWebPages.isEmpty()) {
             float weight = layoutTranslator(layout, false);
             if (weight > 0.0)
-                setupWebView(sitesWebPages.get(0), weight);
+                setupWebView(sitesWebPages.get(0), sitesWebPages.get(1), weight);
         }
     }
 
@@ -146,15 +152,14 @@ public class WebController {
 
     /**
      * Setup the WebViews we need.
-     *
-     * @param url
-     * @param weight
+     *  @param homeUrl
+     * @param title
+     * @param weight  how much screen estate should this main take?
      */
-    private void setupWebView(String url, float weight) {
-        WebView webView = getWebView(weight);
+    private void setupWebView(String homeUrl, String title, float weight) {
+        WebView webView = getWebView();
         webViews.add(webView);
-        mainActivity.addView(webView);
-        webView.loadUrl(url);
+        webView.loadUrl(homeUrl);
         addTapToSettings(webView);
         if (reloadPeriodMins > 0) {
             Subscriber s = reloadSubscriber();
@@ -164,6 +169,21 @@ public class WebController {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(s);
         }
+
+        // A frame layout enables us to overlay the navigation on the web view.
+        FrameLayout frameLayout = new FrameLayout(mainActivity);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, weight);
+        frameLayout.setLayoutParams(params);
+
+        // Add navigation options to the web view.
+        NavigationLayout navigationLayout = new NavigationLayout(mainActivity, webView, webView.getUrl(), title);
+        navigationLayout.setAlpha(0);
+        navigationLayouts.add(navigationLayout);
+
+        // Add the web view and our navigation in a frame layout.
+        frameLayout.addView(webView);
+        frameLayout.addView(navigationLayout);
+        mainActivity.addView(frameLayout);
     }
 
     /**
@@ -191,24 +211,22 @@ public class WebController {
     /**
      * Returns a WebView with a specified weight.
      *
-     * @param weight how much screen estate should this main take?
-     *               A total value of 1.0f will be split between the webviews created.
      * @return a WebView with the specified weight.
      */
-    private WebView getWebView(float weight) {
-        WebView webView = new WebView(mainActivity);
+    private WebView getWebView() {
+        final WebView webView = new WebView(mainActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
+        webView.setWebChromeClient(new KioskerWebChromeClient());
+        webView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        webView.setWebContentsDebuggingEnabled(true);
         WebSettings webSettings = webView.getSettings();
-        webView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, weight));
         webSettings.setJavaScriptEnabled(true);
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAppCacheEnabled(true);
         webSettings.setDatabaseEnabled(true);
-//        webView.setWebChromeClient(new KioskerWebChromeClient());
-//        webSettings.setGeolocationDatabasePath("/data/data/Kiosker");
-        webView.setWebContentsDebuggingEnabled(true);
+        webSettings.setGeolocationDatabasePath("/data/data/Kiosker");
         return webView;
     }
 
@@ -244,14 +262,27 @@ public class WebController {
                         taps = tapsToOpenSettings;
 
                     lastTap = now;
-                } else if (event.getAction() == MotionEvent.ACTION_UP)
+                }
+                // When the user lifts his finger, restart all scheduled tasks.
+                else if (event.getAction() == MotionEvent.ACTION_UP)
                     mainActivity.startScheduledTasks();
+
+                    // When the user moves his finger on the view show our navigation.
+                else if (event.getAction() == MotionEvent.ACTION_MOVE)
+                    navigationLayouts.get(webViews.indexOf(v)).showNavigation();
                 return false;
             }
         });
     }
 
     public void clearWebViews() {
+        for (WebView webView : webViews) {
+            webView.destroy();
+        }
+        for (NavigationLayout navigationLayout : navigationLayouts) {
+            navigationLayout.removeAllViews();
+        }
+        navigationLayouts.clear();
         webViews.clear();
         homeWebPages.clear();
         sitesWebPages.clear();
@@ -344,7 +375,7 @@ public class WebController {
             public void onNext(Long l) {
                 if (!screenSaverWebPages.isEmpty()) {
                     mainActivity.currentlyScreenSaving = true;
-                    wasScreenSaving =true;
+                    wasScreenSaving = true;
 
                     Random rnd = new Random();
                     int randomIndex = rnd.nextInt(screenSaverWebPages.size() / 2) * 2;
@@ -353,7 +384,7 @@ public class WebController {
                     mainActivity.cleanUpMainView();
 
                     // Make a new full screen web view with a random url from the screen saver urls.
-                    setupWebView(screenSaverWebPages.get(randomIndex), 1.0f);
+                    setupWebView(screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
                 } else
                     unsubscribe();
             }

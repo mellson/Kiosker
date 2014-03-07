@@ -24,25 +24,6 @@ public class Time {
             minutes = 0;
     }
 
-    public int getHours() {
-        return hours;
-    }
-
-    public int getMinutes() {
-        return minutes;
-    }
-
-    @Override
-    public String toString() {
-        String hourString = hours < 10 ? "0" + hours : "" + hours;
-        String minutesString = minutes < 10 ? "0" + minutes : "" + minutes;
-        return hourString + "." + minutesString;
-    }
-
-    public int secondsUntil() {
-        return secondsUntil(hours, minutes);
-    }
-
     public static int secondsUntil(int hours, int minutes) {
         Date now = new Date();
         Calendar cal = getDateFromTime(hours, minutes);
@@ -73,5 +54,24 @@ public class Time {
         Boolean betweenTimes = cal1.getTimeInMillis() <= now.getTime();
         betweenTimes &= cal2.getTimeInMillis() >= now.getTime();
         return betweenTimes;
+    }
+
+    public int getHours() {
+        return hours;
+    }
+
+    public int getMinutes() {
+        return minutes;
+    }
+
+    @Override
+    public String toString() {
+        String hourString = hours < 10 ? "0" + hours : "" + hours;
+        String minutesString = minutes < 10 ? "0" + minutes : "" + minutes;
+        return hourString + "." + minutesString;
+    }
+
+    public int secondsUntil() {
+        return secondsUntil(hours, minutes);
     }
 }

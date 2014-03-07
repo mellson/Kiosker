@@ -22,6 +22,9 @@ public class StandbyController {
     private Subscriber idleDimSubscriber;
     private Observable idleDimObservable;
     private ArrayList<Subscriber> subscribers;
+    //region Device sleep methods.
+    private PowerManager.WakeLock fullWakeLock;
+    private PowerManager.WakeLock partialWakeLock;
 
     public StandbyController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
@@ -165,10 +168,6 @@ public class StandbyController {
 
         createWakeLocks();
     }
-
-    //region Device sleep methods.
-    private PowerManager.WakeLock fullWakeLock;
-    private PowerManager.WakeLock partialWakeLock;
 
     /**
      * This method creates the wake locks we need for later waking of the device.
