@@ -11,7 +11,10 @@ public class HardwareController {
     private final MainActivity mainActivity;
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
-    private Boolean allowHome = false;
+    private Boolean allowHome() {
+        return Constants.getAllowHome(mainActivity);
+    }
+
     private Boolean settingsAreParsed = false;
 
     public HardwareController(MainActivity mainActivity) {
@@ -24,7 +27,7 @@ public class HardwareController {
      * It requires root to work.
      */
     public void hideNavigationUI() {
-        if (!allowHome && settingsAreParsed && Constants.isDeviceRooted()) {
+        if (!allowHome() && settingsAreParsed && Constants.isDeviceRooted()) {
             try {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
@@ -54,15 +57,13 @@ public class HardwareController {
 
     public void handleHardwareSettings(LinkedHashMap settings) {
         Object allowHome = settings.get("allowHome");
-        if (allowHome != null) {
-            this.allowHome = (Boolean) allowHome;
-            Constants.setAllowHome(mainActivity, this.allowHome);
-        }
+        if (allowHome != null)
+            Constants.setAllowHome(mainActivity, (Boolean) allowHome);
         settingsAreParsed = true;
     }
 
     public void handleNavigationUI() {
-        if (allowHome)
+        if (allowHome())
             showNavigationUI();
         else
             hideNavigationUI();

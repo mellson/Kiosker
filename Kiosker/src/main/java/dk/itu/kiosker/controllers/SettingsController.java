@@ -4,19 +4,20 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.R;
 import dk.itu.kiosker.activities.MainActivity;
-import dk.itu.kiosker.activities.StatusUpdater;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
+import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class SettingsController {
     private MainActivity mainActivity;
     private SoundController soundController;
     private WebController webController;
-    private SleepController sleepController;
+    private StandbyController standbyController;
     private HardwareController hardwareController;
 
     // List of the scheduled settings
@@ -27,7 +28,7 @@ public class SettingsController {
         subscribers = new ArrayList<>();
         soundController = new SoundController(mainActivity, subscribers);
         webController = new WebController(mainActivity, subscribers);
-        sleepController = new SleepController(mainActivity, subscribers);
+        standbyController = new StandbyController(mainActivity, subscribers);
         hardwareController = new HardwareController(mainActivity);
     }
 
@@ -38,7 +39,7 @@ public class SettingsController {
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);
-        sleepController.handleDimSettings(settings);
+        standbyController.handleDimSettings(settings);
         hardwareController.handleHardwareSettings(settings);
 
         // Save these settings as the safe defaults.
@@ -54,11 +55,11 @@ public class SettingsController {
 
         // If the settings are empty we have failed to get any settings.
         if (settings.isEmpty()) {
-            StatusUpdater.updateTextView(mainActivity, R.id.downloadingTextView, ":(");
-            StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "Sorry - error while downloading. Wrong base url?");
+            mainActivity.updateMainStatus(":(");
+            mainActivity.updateSubStatus("Sorry - error while downloading. Wrong base url?");
             mainActivity.createSecretMenuButton();
         } else
-            StatusUpdater.removeStatusTextViews(mainActivity);
+            mainActivity.removeStatusTextViews();
 
         // When all the settings have been parsed check to see if we should hide the ui.
         hardwareController.hideNavigationUI();
@@ -74,12 +75,45 @@ public class SettingsController {
         handleSettings(LocalSettings.getSafeJson(mainActivity));
     }
 
-    public void stopScheduledTasks() {
-        sleepController.stopDimSubscription();
+    // We wait 5 seconds before starting scheduled tasks after a touch event.
+    Observable<Long> delayedScheduledTasksObservable = Observable.timer(5, TimeUnit.SECONDS).subscribeOn(AndroidSchedulers.mainThread());
+
+    Subscriber<Long> delayedScheduledTasksSubscription;
+    private Subscriber getDelayedScheduledTasksSubscription() {
+        delayedScheduledTasksSubscription = new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(Long aLong) {
+                Log.d(Constants.TAG, "Starting scheduled tasks.");
+                webController.startScreenSaverSubscription();
+                standbyController.startDimSubscription();
+            }
+        };
+        return delayedScheduledTasksSubscription;
     }
 
     public void startScheduledTasks() {
-        sleepController.startDimSubscription();
+        if (delayedScheduledTasksSubscription != null && delayedScheduledTasksSubscription.isUnsubscribed())
+            delayedScheduledTasksObservable.subscribe(getDelayedScheduledTasksSubscription());
+        else {
+            if (delayedScheduledTasksSubscription != null)
+                delayedScheduledTasksSubscription.unsubscribe();
+            delayedScheduledTasksObservable.subscribe(getDelayedScheduledTasksSubscription());
+        }
+    }
+
+    public void stopScheduledTasks() {
+        webController.stopScreenSaverSubscription();
+        standbyController.stopDimSubscription();
     }
 
     public void reloadWebViews() {
@@ -109,14 +143,14 @@ public class SettingsController {
     }
 
     public void keepScreenOn() {
-        sleepController.keepScreenOn();
+        standbyController.keepScreenOn();
     }
 
     public void handleOnResume() {
-        sleepController.handleOnResume();
+        standbyController.handleOnResume();
     }
 
     public void handleOnPause() {
-        sleepController.handleOnPause();
+        standbyController.handleOnPause();
     }
 }

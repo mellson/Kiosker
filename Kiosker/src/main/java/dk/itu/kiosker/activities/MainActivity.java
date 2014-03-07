@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
@@ -29,6 +28,9 @@ public class MainActivity extends Activity {
     protected LinearLayout mainLayout;
     private Subscriber settingsSubscription;
     public Boolean showingSettings = false;
+    private StatusUpdater statusUpdater;
+    public boolean currentlyInStandbyPeriod;
+    public boolean currentlyScreenSaving;
 
     //region Create methods.
     @Override
@@ -45,6 +47,7 @@ public class MainActivity extends Activity {
     private void handleReturnToApp() {
         settingsController = new SettingsController(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
+        statusUpdater = new StatusUpdater(this);
         settingsController.keepScreenOn();
         if (Constants.getInitialRun(this))
             InitialSetup.start(this);
@@ -80,7 +83,6 @@ public class MainActivity extends Activity {
         }
 
         Boolean refreshDevice = data.getBooleanExtra(Constants.KIOSKER_REFRESH_SETTINGS_ID, false);
-
         if (refreshDevice)
             Observable.from(1).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Integer>() {
                 @Override
@@ -107,7 +109,7 @@ public class MainActivity extends Activity {
     /**
      * Start fetching settings every 12 hours.
      */
-    protected void refreshDevice() {
+    public void refreshDevice() {
         if (settingsSubscription != null && !settingsSubscription.isUnsubscribed())
             settingsSubscription.unsubscribe();
 
@@ -128,8 +130,8 @@ public class MainActivity extends Activity {
                 cleanUpMainView();
                 settingsController.unsubscribeScheduledTasks();
                 Log.d(Constants.TAG, "Fetching settings.");
-                StatusUpdater.updateTextView(MainActivity.this, R.id.downloadingTextView, "Downloading settings");
-                StatusUpdater.updateTextView(MainActivity.this, R.id.statusTextView, "Starting download.");
+                statusUpdater.updateMainStatus("Downloading settings");
+                statusUpdater.updateSubStatus("Starting download.");
                 OnlineSettings.getSettings(MainActivity.this);
             }
         };
@@ -204,20 +206,8 @@ public class MainActivity extends Activity {
     /**
      * Removes and invalidates all the views we have added to our main layout programmatically.
      */
-    private void cleanUpMainView() {
-        // Get the number of views we actually use in our main layout
-        LinearLayout mainView = (LinearLayout) getLayoutInflater().inflate(R.layout.main, null);
-        int minChildCount = mainView.getChildCount();
-        int actualChildCount = mainLayout.getChildCount();
-        if (actualChildCount > minChildCount) {
-            for (int i = minChildCount; i < actualChildCount; i++) {
-                View v = mainLayout.getChildAt(i);
-                if (v != null) {
-                    mainLayout.removeView(v);
-                    v.invalidate();
-                }
-            }
-        }
+    public void cleanUpMainView() {
+        mainLayout.removeAllViews();
         settingsController.clearWebViews();
     }
 
@@ -241,7 +231,6 @@ public class MainActivity extends Activity {
         secretMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                settingsController.keepScreenOn();
                 Intent i = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivityForResult(i, 0);
             }
@@ -269,8 +258,8 @@ public class MainActivity extends Activity {
         settingsController.loadSafeSettings();
     }
 
-    public void addView(WebView wv1) {
-        mainLayout.addView(wv1);
+    public void addView(View view) {
+        mainLayout.addView(view);
     }
 
     private void handleNavigationUI() {
@@ -283,6 +272,18 @@ public class MainActivity extends Activity {
 
     private void hideNavigationUI() {
         settingsController.hideNavigationUI();
+    }
+
+    public void removeStatusTextViews() {
+        statusUpdater.removeStatusTextViews();
+    }
+
+    public void updateMainStatus(String status) {
+        statusUpdater.updateMainStatus(status);
+    }
+
+    public void updateSubStatus(String status) {
+        statusUpdater.updateSubStatus(status);
     }
     //endregion
 }

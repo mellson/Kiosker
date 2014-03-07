@@ -11,7 +11,6 @@ import android.webkit.URLUtil;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import dk.itu.kiosker.R;
 import dk.itu.kiosker.models.Constants;
 
 public class InitialSetup {
@@ -22,8 +21,8 @@ public class InitialSetup {
      * This initial run can be triggered by resetting the device.
      */
     public static void start(final MainActivity mainActivity) {
-        StatusUpdater.updateTextView(mainActivity, R.id.downloadingTextView, "Initial Run");
-        StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "Please set the base url.");
+        mainActivity.updateMainStatus("Initial Run");
+        mainActivity.updateSubStatus("Please set the base url.");
         final EditText et = new EditText(mainActivity);
         et.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         et.setGravity(Gravity.CENTER);

@@ -17,15 +17,13 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class SleepController {
+public class StandbyController {
     private MainActivity mainActivity;
     private Subscriber idleDimSubscriber;
-    private Observable observable;
+    private Observable idleDimObservable;
     private ArrayList<Subscriber> subscribers;
-    private Boolean currentlyInStandbyPeriod = false;
-    private Boolean currentlyScreenSaving = false;
 
-    public SleepController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
+    public StandbyController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
         this.subscribers = subscribers;
     }
@@ -33,13 +31,13 @@ public class SleepController {
     public void handleDimSettings(LinkedHashMap settings) {
         if (settings.containsKey("idlePeriodMins")) {
             int minutesUntilDim = (int) settings.get("idlePeriodMins");
-            observable = Observable.timer(minutesUntilDim, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
-            observable.subscribe(getIdleDimSubscriber());
+            idleDimObservable = Observable.timer(minutesUntilDim, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
+            idleDimObservable.subscribe(getIdleDimSubscriber());
         }
         if (settings.containsKey("standbyStartTime") && settings.containsKey("standbyStopTime")) {
             Time standbyStartTime = new Time(settings.get("standbyStartTime"));
 
-            // Creating a simple observable we can define a task on.
+            // Creating a simple idleDimObservable we can define a task on.
             Observable<Integer> startObservable = Observable.from(1);
 
             // Create a subscriber that will set the volume to 0.
@@ -55,7 +53,7 @@ public class SleepController {
                     .subscribe(standbyStartTimeSubscriber);
 
             Time standbyStopTime = new Time(settings.get("standbyStopTime"));
-            // Creating a simple observable we can define a task on.
+            // Creating a simple idleDimObservable we can define a task on.
             Observable<Integer> stopObservable = Observable.from(1);
 
             // Create a subscriber that will set the volume to 0.
@@ -91,10 +89,10 @@ public class SleepController {
             @Override
             public void onNext(Object o) {
                 if (dimScreen) {
-                    currentlyInStandbyPeriod = true;
+                    mainActivity.currentlyInStandbyPeriod = true;
                     removeKeepScreenOn();
                 } else {
-                    currentlyInStandbyPeriod = false;
+                    mainActivity.currentlyInStandbyPeriod = false;
                     wakeDevice();
                     unDimDevice();
                 }
@@ -126,7 +124,7 @@ public class SleepController {
             @Override
             public void onNext(Object o) {
                 dimDevice();
-                if (!currentlyInStandbyPeriod && !currentlyScreenSaving)
+                if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)
                     mainActivity.backToMainActivity();
             }
         };
@@ -134,7 +132,6 @@ public class SleepController {
     }
 
     private void unDimDevice() {
-        Log.d(Constants.TAG, "Undimming the device.");
         WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
         params.alpha = 1.0f;
         params.screenBrightness = -1;
@@ -142,7 +139,6 @@ public class SleepController {
     }
 
     private void dimDevice() {
-        Log.d(Constants.TAG, "Dimming the device.");
         WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
         params.screenBrightness = 0;
         mainActivity.getWindow().setAttributes(params);
@@ -154,11 +150,9 @@ public class SleepController {
     }
 
     public void startDimSubscription() {
-        Log.d(Constants.TAG, "Restarting dim subscription.");
-
         // Restart the idle time out if we are not in the standby period.
-        if (observable != null && !currentlyInStandbyPeriod)
-            observable.subscribe(getIdleDimSubscriber());
+        if (idleDimObservable != null && !mainActivity.currentlyInStandbyPeriod)
+            idleDimObservable.subscribe(getIdleDimSubscriber());
             // If we are in the standby period dim the screen again after 30 secs.
         else
             Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(getIdleDimSubscriber());
@@ -194,6 +188,7 @@ public class SleepController {
         KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
         keyguardLock.disableKeyguard();
         keepScreenOn();
+        mainActivity.startScheduledTasks();
     }
 
     public void handleOnResume() {

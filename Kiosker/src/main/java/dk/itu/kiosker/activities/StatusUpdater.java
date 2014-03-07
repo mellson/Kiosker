@@ -2,56 +2,57 @@ package dk.itu.kiosker.activities;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.view.View;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Random;
 
-import dk.itu.kiosker.R;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class StatusUpdater {
-    /**
-     * Overloaded method which implies that we are not yet finished downloading settings.
-     *
-     * @param activity
-     * @param id
-     * @param status
-     */
-    public static void updateTextView(Activity activity, final int id, final String status) {
-        updateTextView(activity, id, status, false);
+    private TextView mainStatusTextView;
+    private TextView subStatusTextView;
+    private LinearLayout mainLayout;
+
+    public StatusUpdater(MainActivity mainActivity) {
+        mainStatusTextView = getTextView(60, 0.7f, mainActivity);
+        subStatusTextView = getTextView(25, 0.5f, mainActivity);
+        this.mainLayout = mainActivity.mainLayout;
+    }
+
+    private TextView getTextView(int textSize, float alpha, Activity activity) {
+        TextView tv = new TextView(activity);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, textSize);
+        tv.setGravity(Gravity.CENTER_HORIZONTAL);
+        tv.setLayoutParams(layoutParams);
+        tv.setBackgroundColor(Color.BLACK);
+        tv.setTextColor(Color.WHITE);
+        tv.setAlpha(alpha);
+        return tv;
     }
 
     /**
      * Update a text view defined in a layout file.
      * We use it to update the status while downloading settings.
      *
-     * @param id       id of the text view.
+     * @param textView the text view you would like to update.
      * @param status   the status you would like to show in the text view.
-     * @param finished are we finished downloading settings.
      */
-    private static void updateTextView(final Activity activity, final int id, final String status, final Boolean finished) {
+    private void updateTextView(final TextView textView, final String status) {
         Observable o = Observable.from(1);
         o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1() {
             @Override
             public void call(Object o) {
-                TextView textView = (TextView) activity.findViewById(id);
-                View view = textView.getRootView();
-
                 // While we download settings we flash the background in random colors.
-                int color;
-                if (!finished) {
-                    textView.setVisibility(View.VISIBLE);
-                    Random rnd = new Random();
-                    color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-                } else {
-                    color = Color.BLACK;
-                    textView.setVisibility(View.GONE);
-                }
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
                 textView.setText(status);
-                view.setBackgroundColor(color);
+                mainLayout.setBackgroundColor(color);
             }
         });
     }
@@ -59,9 +60,22 @@ public class StatusUpdater {
     /**
      * Remove the status text views we have on screen while fetching settings.
      */
-    public static void removeStatusTextViews(Activity activity) {
-        updateTextView(activity, R.id.downloadingTextView, "", true);
-        updateTextView(activity, R.id.statusTextView, "", true);
+    public void removeStatusTextViews() {
+        mainLayout.removeView(mainStatusTextView);
+        mainLayout.removeView(subStatusTextView);
+        mainLayout.setBackgroundColor(Color.BLACK);
+    }
+
+    public void updateMainStatus(String status) {
+        if (mainLayout.indexOfChild(mainStatusTextView) == -1)
+            mainLayout.addView(mainStatusTextView);
+        updateTextView(mainStatusTextView, status);
+    }
+
+    public void updateSubStatus(String status) {
+        if (mainLayout.indexOfChild(subStatusTextView) == -1)
+            mainLayout.addView(subStatusTextView);
+        updateTextView(subStatusTextView, status);
     }
     //endregion
 }

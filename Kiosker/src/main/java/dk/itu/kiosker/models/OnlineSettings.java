@@ -6,10 +6,8 @@ import android.widget.Toast;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.R;
 import dk.itu.kiosker.activities.InitialSetup;
 import dk.itu.kiosker.activities.MainActivity;
-import dk.itu.kiosker.activities.StatusUpdater;
 import dk.itu.kiosker.utils.JsonFetcher;
 import rx.Observable;
 import rx.Observer;
@@ -40,7 +38,7 @@ public class OnlineSettings {
             @Override
             public void onCompleted() {
                 Log.d(Constants.TAG, "Finished getting base json settings.");
-                StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "Finished downloading base settings.");
+                mainActivity.updateSubStatus("Finished downloading base settings.");
                 String device_id = Constants.getDeviceId(mainActivity);
                 if (!device_id.isEmpty())
                     JsonFetcher.getObservableMap(Constants.BASE_SETTINGS + "_" + device_id + Constants.FILE_ENDING)
@@ -54,9 +52,9 @@ public class OnlineSettings {
             public void onError(Throwable throwable) {
                 Log.e(Constants.TAG, "Error while getting base json settings.", throwable);
 
-                StatusUpdater.updateTextView(mainActivity, R.id.downloadingTextView, "Error");
+                mainActivity.updateMainStatus("Error");
                 if (Constants.hasSafeSettings(mainActivity)) {
-                    StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "while getting base json settings, trying safe settings.");
+                    mainActivity.updateSubStatus("while getting base json settings, trying safe settings.");
 
                     // Of there was an error getting the json we can load or last successful json
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
@@ -66,7 +64,7 @@ public class OnlineSettings {
                         }
                     });
                 } else {
-                    StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "while getting base json settings, please retry.");
+                    mainActivity.updateSubStatus("while getting base json settings, please retry.");
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                         @Override
                         public void call(Long aLong) {
@@ -90,7 +88,7 @@ public class OnlineSettings {
             @Override
             public void onCompleted() {
                 Log.d(Constants.TAG, "Finished getting device specific json settings.");
-                StatusUpdater.updateTextView(mainActivity, R.id.statusTextView, "Finished downloading device specific settings.");
+                mainActivity.updateSubStatus("Finished downloading device specific settings.");
                 mainActivity.handleSettings(currentSettings);
             }
 

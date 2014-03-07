@@ -34,6 +34,7 @@ public class Constants {
     }
 
     public static String getDeviceId(Activity activity) {
+        // TODO test evt SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
         String deviceId = prefs.getString(KIOSKER_DEVICE_ID, "");
         return deviceId;

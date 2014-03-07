@@ -2,6 +2,7 @@ package dk.itu.kiosker.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -11,6 +12,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
+import dk.itu.kiosker.models.Constants;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -34,7 +36,7 @@ public class LogActivity extends Activity {
 
     private void updateLog() {
         try {
-            Process process = Runtime.getRuntime().exec("logcat -d -v long");
+            Process process = Runtime.getRuntime().exec("logcat -d -v time");
             final BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()));
             tv = (TextView) findViewById(R.id.logTextView);
@@ -48,7 +50,7 @@ public class LogActivity extends Activity {
 
                 @Override
                 public void onError(Throwable e) {
-
+                    Log.e(Constants.TAG, "Error while updating log update text.", e);
                 }
 
                 @Override
@@ -69,8 +71,10 @@ public class LogActivity extends Activity {
                             String line;
                             try {
                                 while ((line = bufferedReader.readLine()) != null) {
-                                    log.insert(0, line);
-                                    log.insert(line.length(), "\n");
+                                    if (!line.contains("GC_FOR_ALLOC")) { // Remove all garbage collection messages.
+                                        log.insert(0, line);
+                                        log.insert(line.length(), "\n");
+                                    }
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -27,8 +28,7 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings);
-
-        refreshSettings = false;
+        keepScreenOn();
 
 //        showPasswordDialog();
 
@@ -80,7 +80,8 @@ public class SettingsActivity extends Activity {
         deviceIdEditText.setText(deviceId);
 
         final CheckBox allowHomeCheckbox = (CheckBox) findViewById(R.id.allowHomeCheckBox);
-        allowHomeCheckbox.setChecked(Constants.getAllowHome(this));
+        allowHome = this.getIntent().getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
+        allowHomeCheckbox.setChecked(allowHome);
         // Only allow to allow home if the device is actually rooted
         allowHomeCheckbox.setEnabled(Constants.isDeviceRooted());
 
@@ -120,6 +121,12 @@ public class SettingsActivity extends Activity {
 
         // Let all views accept touch.
         allowTouches(findViewById(R.id.settingsMainLayout));
+    }
+
+    private void keepScreenOn() {
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        getWindow().setAttributes(params);
     }
 
     private void showPasswordDialog() {
