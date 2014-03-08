@@ -20,6 +20,7 @@ public class Constants {
     public static final String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
     public static final String KIOSKER_DEVICE_ID = "kiosker_device_id";
     private static final String INITIAL_RUN = "initial_run_of_application";
+    private static final String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
     public static String settingsText = "This is a dummy settings text";
 
@@ -75,5 +76,16 @@ public class Constants {
 
     public static Boolean hasSafeSettings(MainActivity mainActivity) {
         return !LocalSettings.getSafeJson(mainActivity).isEmpty();
+    }
+
+    public static Boolean getAllowSwitching(Activity activity) {
+        SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
+        return prefs.getBoolean(KIOSKER_ALLOW_SWITCHING_ID, false);
+    }
+
+    public static void setAllowSwitching(MainActivity activity, Boolean allowSwitching) {
+        SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
+        editor.putBoolean(KIOSKER_ALLOW_SWITCHING_ID, allowSwitching);
+        editor.commit();
     }
 }

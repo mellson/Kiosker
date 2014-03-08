@@ -77,19 +77,22 @@ class WebController {
             float weight = layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
             if (weight < 1.0 && (sitesWebPages == null || sitesWebPages.isEmpty()))
-                setupWebView(homeWebPages.get(0), homeWebPages.get(1), 1.0f);
+                setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), 1.0f);
             if (weight > 0.0)
-                setupWebView(homeWebPages.get(0), homeWebPages.get(1), weight);
+                setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), weight);
         }
 
         if (!sitesWebPages.isEmpty()) {
             float weight = layoutTranslator(layout, false);
             if (weight > 0.0)
-                setupWebView(sitesWebPages.get(0), sitesWebPages.get(1), weight);
+                setupWebView(false, sitesWebPages.get(0), sitesWebPages.get(1), weight);
         }
     }
 
     private void handleAutoCycleSecondary(LinkedHashMap settings) {
+        Boolean allowSwitching = (Boolean) settings.get("allowSwitching");
+        if (allowSwitching != null && allowSwitching)
+            Constants.setAllowSwitching(mainActivity, allowSwitching);
         Boolean autoCycleSecondary = (Boolean) settings.get("autoCycleSecondary");
         if (autoCycleSecondary != null && autoCycleSecondary && sitesWebPages.size() > 2) {
             Integer autoCycleSecondaryPeriodMins = (Integer) settings.get("autoCycleSecondaryPeriodMins");
@@ -150,11 +153,12 @@ class WebController {
     /**
      * Setup the WebViews we need.
      *
+     * @param homeView is this the main view, if so we don't allow the user to change the url.
      * @param homeUrl
      * @param title
      * @param weight  how much screen estate should this main take?
      */
-    private void setupWebView(String homeUrl, String title, float weight) {
+    private void setupWebView(boolean homeView, String homeUrl, String title, float weight) {
         WebView webView = getWebView();
         webViews.add(webView);
         webView.loadUrl(homeUrl);
@@ -174,7 +178,7 @@ class WebController {
         frameLayout.setLayoutParams(params);
 
         // Add navigation options to the web view.
-        NavigationLayout navigationLayout = new NavigationLayout(mainActivity, webView, title);
+        NavigationLayout navigationLayout = new NavigationLayout(homeView, mainActivity, webView, title, sitesWebPages);
         navigationLayout.setAlpha(0);
         navigationLayouts.add(navigationLayout);
 
@@ -356,7 +360,7 @@ class WebController {
                     mainActivity.cleanUpMainView();
 
                     // Make a new full screen web view with a random url from the screen saver urls.
-                    setupWebView(screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
+                    setupWebView(false, screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
 
                     Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex + 1)));
                 } else
