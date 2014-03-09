@@ -44,7 +44,7 @@ public class InitialSetup {
                     InputMethodManager imm = (InputMethodManager) mainActivity.getSystemService(
                             Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
-                    mainActivity.refreshDevice();
+                    mainActivity.startLongRefreshSubscription();
                     return true;
                 }
                 return false;

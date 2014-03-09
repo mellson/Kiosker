@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import java.util.LinkedHashMap;
-import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.ActivityController;
@@ -17,9 +16,7 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
-import dk.itu.kiosker.utils.Time;
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -27,9 +24,9 @@ public class MainActivity extends Activity {
     public Boolean showingSettings = false;
     public boolean currentlyInStandbyPeriod;
     public boolean currentlyScreenSaving;
-    LinearLayout mainLayout;
+    public boolean userIsInteractingWithDevice;
+    public LinearLayout mainLayout;
     private SettingsController settingsController;
-    private Subscriber settingsSubscription;
     private StatusUpdater statusUpdater;
 
     //region Create methods.
@@ -37,14 +34,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        handleReturnToApp();
+        setupApplication();
     }
 
     /**
      * This method takes care of initializing the objects needed by this activity.
      * It also decides if we do an initial setup or a refresh of settings.
      */
-    private void handleReturnToApp() {
+    private void setupApplication() {
         settingsController = new SettingsController(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
         statusUpdater = new StatusUpdater(this);
@@ -52,12 +49,27 @@ public class MainActivity extends Activity {
         if (Constants.getInitialRun(this))
             InitialSetup.start(this);
         else
-            refreshDevice();
+            settingsController.startLongRefreshSubscription();
+    }
+
+    public void startLongRefreshSubscription() {
+        settingsController.startLongRefreshSubscription();
+    }
+
+    /**
+     * Clears the current view and downloads settings again.
+     */
+    public void refreshDevice() {
+        Log.d(Constants.TAG, "Refreshing device.");
+        cleanUpMainView();
+        settingsController.unsubscribeScheduledTasks();
+        statusUpdater.updateMainStatus("Downloading settings");
+        statusUpdater.updateSubStatus("Starting download.");
+        OnlineSettings.getSettings(this);
     }
     //endregion
 
-    //region Callback methods.
-
+    //region Callback method.
     /**
      * This gets called whenever we return from our secret settings activity.
      */
@@ -101,56 +113,7 @@ public class MainActivity extends Activity {
     }
     //endregion
 
-    //region Setup device methods.
-
-    /**
-     * Start fetching settings every 12 hours.
-     */
-    public void refreshDevice() {
-        if (settingsSubscription != null && !settingsSubscription.isUnsubscribed())
-            settingsSubscription.unsubscribe();
-
-        // Create the action
-        settingsSubscription = new Subscriber() {
-            @Override
-            public void onCompleted() {
-                Log.d(Constants.TAG, "Got settings.");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while getting settings.", e);
-            }
-
-            @Override
-            public void onNext(Object o) {
-                cleanUpMainView();
-                settingsController.unsubscribeScheduledTasks();
-                Log.d(Constants.TAG, "Fetching settings.");
-                statusUpdater.updateMainStatus("Downloading settings");
-                statusUpdater.updateSubStatus("Starting download.");
-                OnlineSettings.getSettings(MainActivity.this);
-            }
-        };
-
-        // Update settings at 8 in the morning and 20 in the night.
-        int secondsUntil8 = Time.secondsUntil(8, 0);
-        int secondsUntil20 = Time.secondsUntil(20, 0);
-        int secondsUntilNextUpdate = secondsUntil8 < secondsUntil20 ? secondsUntil8 : secondsUntil20;
-
-        settingsSubscription.onNext(null);
-        Observable settingsObservable = Observable.from(1);
-        settingsObservable
-                .delay(12, TimeUnit.HOURS)
-                .repeat()
-                .delaySubscription(secondsUntilNextUpdate, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(settingsSubscription);
-    }
-    //endregion
-
     //region Life cycle methods.
-
     /**
      * This method gets called whenever our activity enters the background.
      * We use it to call our handler for this scenario handleMainActivityGoingAway.
@@ -185,7 +148,7 @@ public class MainActivity extends Activity {
         if (settingsController != null)
             handleNavigationUI();
         else
-            handleReturnToApp();
+            setupApplication();
         setFullScreenImmersiveMode();
         Log.d(Constants.TAG, "onStart() called");
     }
@@ -199,7 +162,6 @@ public class MainActivity extends Activity {
     //endregion
 
     //region Helper methods.
-
     /**
      * Removes and invalidates all the views we have added to our main layout programmatically.
      */
@@ -236,6 +198,7 @@ public class MainActivity extends Activity {
     }
 
     public void stopScheduledTasks() {
+        userIsInteractingWithDevice = true;
         settingsController.stopScheduledTasks();
     }
 

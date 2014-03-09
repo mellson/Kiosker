@@ -44,10 +44,10 @@ class StatusUpdater {
      * @param status   the status you would like to show in the text view.
      */
     private void updateTextView(final TextView textView, final String status) {
-        Observable o = Observable.from(1);
-        o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1() {
+        Observable<Long> o = Observable.from(1L);
+        o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
             @Override
-            public void call(Object o) {
+            public void call(Long aLong) {
                 // While we download settings we flash the background in random colors.
                 Random rnd = new Random();
                 int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));

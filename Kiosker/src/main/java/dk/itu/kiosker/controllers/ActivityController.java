@@ -90,11 +90,15 @@ public class ActivityController {
     public static void backToMainActivity(Context context) {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(100);
-        for (int i = 0; i < taskInfo.size(); i++) {
-            ActivityManager.RunningTaskInfo taskInfo1 = taskInfo.get(i);
-            Log.d(Constants.TAG, taskInfo1.topActivity.getClassName());
-            if (taskInfo1.topActivity.getClassName().contains(MainActivity.class.getName()))
-                am.moveTaskToFront(taskInfo1.id, ActivityManager.MOVE_TASK_NO_USER_ACTION);
+        assert taskInfo != null;
+        for (ActivityManager.RunningTaskInfo taskInfo1 : taskInfo) {
+            assert taskInfo1.topActivity != null;
+            String className = taskInfo1.topActivity.getClassName();
+            if (className != null && !className.isEmpty()) {
+                Log.d(Constants.TAG, taskInfo1.topActivity.getClassName());
+                if (className.contains(MainActivity.class.getName()))
+                    am.moveTaskToFront(taskInfo1.id, ActivityManager.MOVE_TASK_NO_USER_ACTION);
+            }
         }
     }
 }

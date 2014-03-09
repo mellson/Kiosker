@@ -43,8 +43,8 @@ class WebController {
     private int reloadPeriodMins;
     private int errorReloadMins;
     // Screen saver subscription
-    private Subscriber screenSaverSubscriber;
-    private Observable screenSaverObservable;
+    private Subscriber<Long> screenSaverSubscriber;
+    private Observable<Long> screenSaverObservable;
     private int screenSaveLengthMins;
 
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
@@ -160,8 +160,8 @@ class WebController {
      * Setup the WebViews we need.
      *
      * @param homeView is this the main view, if so we don't allow the user to change the url.
-     * @param homeUrl
-     * @param title
+     * @param homeUrl the main url for this web view.
+     * @param title the title of the main url.
      * @param weight   how much screen estate should this main take?
      */
     private void setupWebView(boolean homeView, String homeUrl, String title, float weight) {
@@ -195,9 +195,9 @@ class WebController {
     }
 
     /**
-     * Get subscriber for reloading the webview.
+     * Get subscriber for reloading the web view.
      *
-     * @param webView
+     * @param webView the web view you want reloaded.
      */
     private Subscriber<Long> reloadSubscriber(final WebView webView) {
         return new Subscriber<Long>() {
@@ -310,7 +310,7 @@ class WebController {
         Observable.from(1).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Integer>() {
             @Override
             public void call(Integer integer) {
-                if (webViews != null && !webViews.isEmpty() && homeWebPages != null && !homeWebPages.isEmpty())
+                if (!webViews.isEmpty() && homeWebPages != null && !homeWebPages.isEmpty())
                     for (int i = 0; i < webViews.size(); i++) {
                         if (i == 0)
                             webViews.get(i).loadUrl(homeWebPages.get(0));

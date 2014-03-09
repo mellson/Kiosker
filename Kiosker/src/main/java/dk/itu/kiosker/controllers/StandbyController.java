@@ -20,8 +20,8 @@ import rx.android.schedulers.AndroidSchedulers;
 class StandbyController {
     private final MainActivity mainActivity;
     private final ArrayList<Subscriber> subscribers;
-    private Subscriber idleDimSubscriber;
-    private Observable idleDimObservable;
+    private Subscriber<Long> idleDimSubscriber;
+    private Observable<Long> idleDimObservable;
     //region Device sleep methods.
     private PowerManager.WakeLock fullWakeLock;
     private PowerManager.WakeLock partialWakeLock;
@@ -41,10 +41,10 @@ class StandbyController {
             Time standbyStartTime = new Time(settings.get("standbyStartTime"));
 
             // Creating a simple idleDimObservable we can define a task on.
-            Observable<Integer> startObservable = Observable.from(1);
+            Observable<Long> startObservable = Observable.from(1L);
 
             // Create a subscriber that will set the volume to 0.
-            Subscriber<Integer> standbyStartTimeSubscriber = getStandbySubscriber(true);
+            Subscriber<Long> standbyStartTimeSubscriber = getStandbySubscriber(true);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(standbyStartTimeSubscriber);
@@ -57,10 +57,10 @@ class StandbyController {
 
             Time standbyStopTime = new Time(settings.get("standbyStopTime"));
             // Creating a simple idleDimObservable we can define a task on.
-            Observable<Integer> stopObservable = Observable.from(1);
+            Observable<Long> stopObservable = Observable.from(1L);
 
             // Create a subscriber that will set the volume to 0.
-            Subscriber<Integer> standbyStopTimeSubscriber = getStandbySubscriber(false);
+            Subscriber<Long> standbyStopTimeSubscriber = getStandbySubscriber(false);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(standbyStopTimeSubscriber);
@@ -78,8 +78,8 @@ class StandbyController {
         }
     }
 
-    private Subscriber getStandbySubscriber(final Boolean dimScreen) {
-        return new Subscriber() {
+    private Subscriber<Long> getStandbySubscriber(final Boolean dimScreen) {
+        return new Subscriber<Long>() {
             @Override
             public void onCompleted() {
             }
@@ -90,7 +90,7 @@ class StandbyController {
             }
 
             @Override
-            public void onNext(Object o) {
+            public void onNext(Long aLong) {
                 if (dimScreen) {
                     Log.d(Constants.TAG, "Starting standby.");
                     mainActivity.currentlyInStandbyPeriod = true;
@@ -115,8 +115,8 @@ class StandbyController {
         mainActivity.getWindow().setAttributes(params);
     }
 
-    private Subscriber getIdleDimSubscriber() {
-        idleDimSubscriber = new Subscriber() {
+    private Subscriber<Long> getIdleDimSubscriber() {
+        idleDimSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
             }
@@ -127,7 +127,7 @@ class StandbyController {
             }
 
             @Override
-            public void onNext(Object o) {
+            public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Idle time started.");
                 dimDevice();
                 if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)

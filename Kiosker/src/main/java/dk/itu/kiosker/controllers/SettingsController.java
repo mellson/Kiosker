@@ -21,6 +21,8 @@ public class SettingsController {
     private final WebController webController;
     private final StandbyController standbyController;
     private final HardwareController hardwareController;
+    private final RefreshController refreshController;
+
     // List of the scheduled settings
     private final ArrayList<Subscriber> subscribers;
     private Subscriber<Long> delayedScheduledTasksSubscription;
@@ -32,6 +34,7 @@ public class SettingsController {
         webController = new WebController(mainActivity, subscribers);
         standbyController = new StandbyController(mainActivity, subscribers);
         hardwareController = new HardwareController(mainActivity);
+        refreshController = new RefreshController(mainActivity);
     }
 
     public void handleSettings(LinkedHashMap settings) {
@@ -80,23 +83,24 @@ public class SettingsController {
         handleSettings(LocalSettings.getSafeJson(mainActivity));
     }
 
-    private Subscriber getDelayedScheduledTasksSubscription() {
+    private Subscriber<Long> getDelayedScheduledTasksSubscription() {
         delayedScheduledTasksSubscription = new Subscriber<Long>() {
             @Override
-            public void onCompleted() {
-
-            }
+            public void onCompleted() {}
 
             @Override
             public void onError(Throwable e) {
-
+                Log.e(Constants.TAG, "Error while starting delayed tasks.", e);
             }
 
             @Override
             public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Starting scheduled tasks.");
+                mainActivity.userIsInteractingWithDevice = false;
                 webController.startScreenSaverSubscription();
                 standbyController.startDimSubscription();
+                if (refreshController.deviceShouldBeReset)
+                    refreshController.startShortRefreshSubscription();
             }
         };
         return delayedScheduledTasksSubscription;
@@ -115,6 +119,7 @@ public class SettingsController {
     public void stopScheduledTasks() {
         webController.stopScreenSaverSubscription();
         standbyController.stopDimSubscription();
+        refreshController.stopShortRefreshSubscription();
     }
 
     public void reloadWebViews() {
@@ -126,9 +131,8 @@ public class SettingsController {
     }
 
     public void unsubscribeScheduledTasks() {
-        if (subscribers != null)
-            for (Subscriber s : subscribers)
-                s.unsubscribe();
+        for (Subscriber s : subscribers)
+            s.unsubscribe();
     }
 
     public void handleNavigationUI() {
@@ -153,5 +157,9 @@ public class SettingsController {
 
     public void handleOnPause() {
         standbyController.handleOnPause();
+    }
+
+    public void startLongRefreshSubscription() {
+        refreshController.startLongRefreshSubscription();
     }
 }

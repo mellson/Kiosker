@@ -84,6 +84,7 @@ public class LogActivity extends Activity {
                         }
                     });
         } catch (IOException e) {
+            Log.e(Constants.TAG, "Error while updating log.", e);
         }
     }
 
