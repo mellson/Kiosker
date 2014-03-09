@@ -77,7 +77,8 @@ class SoundController {
     private Subscriber<Integer> setVolumeSubscriber(final int volume) {
         return new Subscriber<Integer>() {
             @Override
-            public void onCompleted() {}
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {

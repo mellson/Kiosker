@@ -19,6 +19,8 @@ public class Constants {
     public static final String SAFE_JSON = "kiosker_safe_json";
     public static final String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
     public static final String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    public static final String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
+    public static final String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
     private static final String INITIAL_RUN = "initial_run_of_application";
     private static final String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
@@ -30,18 +32,21 @@ public class Constants {
     }
 
     public static void setAllowHome(Activity activity, Boolean allowHome) {
+        if (allowHome == null)
+            allowHome = false;
         SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
         editor.putBoolean(KIOSKER_ALLOW_HOME_ID, allowHome);
         editor.commit();
     }
 
     public static String getDeviceId(Activity activity) {
-        // TODO test evt SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
         return prefs.getString(KIOSKER_DEVICE_ID, "");
     }
 
     public static void setDeviceId(Activity activity, String deviceId) {
+        if (deviceId == null)
+            deviceId = "";
         SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_DEVICE_ID, deviceId);
         editor.commit();
@@ -53,6 +58,8 @@ public class Constants {
     }
 
     public static void setJsonBaseUrl(Activity activity, String baseUrl) {
+        if (baseUrl == null)
+            baseUrl = "";
         SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
         editor.putString(JSON_BASE_URL_ID, baseUrl);
         editor.commit();
@@ -65,6 +72,8 @@ public class Constants {
     }
 
     public static void setInitialRun(Activity activity, Boolean initialRun) {
+        if (initialRun == null)
+            initialRun = true;
         SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
         editor.putBoolean(INITIAL_RUN, initialRun);
         editor.commit();
@@ -84,8 +93,36 @@ public class Constants {
     }
 
     public static void setAllowSwitching(MainActivity activity, Boolean allowSwitching) {
+        if (allowSwitching == null)
+            allowSwitching = false;
         SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
         editor.putBoolean(KIOSKER_ALLOW_SWITCHING_ID, allowSwitching);
+        editor.commit();
+    }
+
+    public static String getPasswordHash(MainActivity activity) {
+        SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_PASSWORD_HASH_ID, "");
+    }
+
+    public static void setPasswordHash(MainActivity activity, String passwordHash) {
+        if (passwordHash == null)
+            passwordHash = "";
+        SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_PASSWORD_HASH_ID, passwordHash);
+        editor.commit();
+    }
+
+    public static String getMasterPasswordHash(MainActivity activity) {
+        SharedPreferences prefs = activity.getPreferences(activity.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_MASTER_PASSWORD_HASH_ID, "");
+    }
+
+    public static void setMasterPasswordHash(MainActivity activity, String masterPasswordHash) {
+        if (masterPasswordHash == null)
+            masterPasswordHash = "";
+        SharedPreferences.Editor editor = activity.getPreferences(activity.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_MASTER_PASSWORD_HASH_ID, masterPasswordHash);
         editor.commit();
     }
 }

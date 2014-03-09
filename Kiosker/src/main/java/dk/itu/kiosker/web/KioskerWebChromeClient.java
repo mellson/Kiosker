@@ -17,6 +17,7 @@ public class KioskerWebChromeClient extends WebChromeClient {
 
     /**
      * Here we catch error messages, including js errors, from the chrome client.
+     *
      * @param consoleMessage
      * @return
      */

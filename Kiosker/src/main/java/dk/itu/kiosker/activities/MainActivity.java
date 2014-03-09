@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
         handleReturnToApp();
     }
 
@@ -64,13 +64,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
-
-        if (deviceId != null)
-            Constants.setDeviceId(this, deviceId);
+        Constants.setDeviceId(this, deviceId);
 
         String baseUrl = data.getStringExtra(Constants.JSON_BASE_URL_ID);
-        if (baseUrl != null)
-            Constants.setJsonBaseUrl(this, baseUrl);
+        Constants.setJsonBaseUrl(this, baseUrl);
 
         Log.d(Constants.TAG, "onActivity result");
 

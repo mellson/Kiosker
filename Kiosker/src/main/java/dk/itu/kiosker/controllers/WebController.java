@@ -62,10 +62,17 @@ class WebController {
 
     public void handleWebSettings(LinkedHashMap settings) {
         setTimers(settings);
-        int layout = (int) settings.get("layout");
+        Object tempLayout = settings.get("layout");
+        int layout = 0;
+        if (tempLayout != null)
+            layout = (int) tempLayout;
 
         homeWebPages = (ArrayList<String>) settings.get("home");
+        if (homeWebPages == null)
+            homeWebPages = new ArrayList<>();
         sitesWebPages = (ArrayList<String>) settings.get("sites");
+        if (sitesWebPages == null)
+            sitesWebPages = new ArrayList<>();
 
         handleWebViewSetup(layout);
         handleAutoCycleSecondary(settings);
@@ -91,8 +98,7 @@ class WebController {
 
     private void handleAutoCycleSecondary(LinkedHashMap settings) {
         Boolean allowSwitching = (Boolean) settings.get("allowSwitching");
-        if (allowSwitching != null && allowSwitching)
-            Constants.setAllowSwitching(mainActivity, allowSwitching);
+        Constants.setAllowSwitching(mainActivity, allowSwitching);
         Boolean autoCycleSecondary = (Boolean) settings.get("autoCycleSecondary");
         if (autoCycleSecondary != null && autoCycleSecondary && sitesWebPages.size() > 2) {
             Integer autoCycleSecondaryPeriodMins = (Integer) settings.get("autoCycleSecondaryPeriodMins");
@@ -156,7 +162,7 @@ class WebController {
      * @param homeView is this the main view, if so we don't allow the user to change the url.
      * @param homeUrl
      * @param title
-     * @param weight  how much screen estate should this main take?
+     * @param weight   how much screen estate should this main take?
      */
     private void setupWebView(boolean homeView, String homeUrl, String title, float weight) {
         WebView webView = getWebView();
@@ -190,6 +196,7 @@ class WebController {
 
     /**
      * Get subscriber for reloading the webview.
+     *
      * @param webView
      */
     private Subscriber<Long> reloadSubscriber(final WebView webView) {
@@ -259,6 +266,8 @@ class WebController {
                             i.putExtra(Constants.KIOSKER_DEVICE_ID, Constants.getDeviceId(mainActivity));
                             i.putExtra(Constants.JSON_BASE_URL, Constants.getJsonBaseUrl(mainActivity));
                             i.putExtra(Constants.KIOSKER_ALLOW_HOME_ID, Constants.getAllowHome(mainActivity));
+                            i.putExtra(Constants.KIOSKER_PASSWORD_HASH_ID, Constants.getPasswordHash(mainActivity));
+                            i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID, Constants.getMasterPasswordHash(mainActivity));
                             mainActivity.startActivityForResult(i, 0);
                         }
                         taps--;

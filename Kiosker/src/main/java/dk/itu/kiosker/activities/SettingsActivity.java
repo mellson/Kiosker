@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,12 +15,15 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.models.Constants;
 
 
 public class SettingsActivity extends Activity {
+    private String PASSWORD_HASH;
+    private String MASTER_PASSWORD_HASH;
     private Boolean refreshSettings = false;
     private Boolean resetDevice = false;
     private Boolean allowHome = false;
@@ -27,11 +31,19 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.settings);
+        setContentView(R.layout.activity_settings);
         keepScreenOn();
 
-//        showPasswordDialog();
+        PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_HASH_ID);
+        MASTER_PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
+        if ((PASSWORD_HASH != null && !PASSWORD_HASH.isEmpty())
+                || (MASTER_PASSWORD_HASH != null && !MASTER_PASSWORD_HASH.isEmpty()))
+            showPasswordDialog();
+        else
+            setupSettingsView();
+    }
 
+    private void setupSettingsView() {
         Button logButton = (Button) findViewById(R.id.logButton);
         logButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,22 +143,40 @@ public class SettingsActivity extends Activity {
 
     private void showPasswordDialog() {
         // Set an EditText view to get user input
-        final EditText input = new EditText(this);
-
+        final EditText[] input = {new EditText(this)};
+        final Boolean[] okToEnter = {false};
+        final Boolean[] hasEnteredPassword = {false};
         new AlertDialog.Builder(this)
-                .setTitle("Update Status")
-                .setMessage("Hej")
-                .setView(input)
+                .setTitle("Enter device password")
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        if (!okToEnter[0]) {
+                            String toastMessage = hasEnteredPassword[0] ? "Wrong password!" : "You need to enter a password!";
+                            Toast.makeText(SettingsActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    }
+                })
+                .setView(input[0])
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        String value = input.getText().toString();
-                        if (value != "hej")
-                            finish();
+                        Editable inputValue = input[0].getText();
+                        String md5 = "";
+                        if (inputValue != null)
+                            md5 = MD5(inputValue.toString());
+                        if (md5.equals(PASSWORD_HASH) || md5.equals(MASTER_PASSWORD_HASH)) {
+                            Toast.makeText(SettingsActivity.this, "Correct password!", Toast.LENGTH_SHORT).show();
+                            setupSettingsView();
+                            okToEnter[0] = true;
+                        } else if (!md5.equals(PASSWORD_HASH) || !md5.equals(MASTER_PASSWORD_HASH)) {
+                            hasEnteredPassword[0] = true;
+                        }
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                if (input.getText().toString() != "hej")
-                    finish();
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
             }
         }).show();
     }
@@ -190,7 +220,6 @@ public class SettingsActivity extends Activity {
         //Set up touch listener for non-text box views to hide keyboard.
         if (!(view instanceof EditText)) {
             view.setOnTouchListener(new View.OnTouchListener() {
-
                 public boolean onTouch(View v, MotionEvent event) {
                     hideSoftKeyboard();
                     return false;
@@ -211,5 +240,19 @@ public class SettingsActivity extends Activity {
     public void hideSoftKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
+    }
+
+    public String MD5(String md5) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes());
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < array.length; ++i) {
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+        }
+        return null;
     }
 }

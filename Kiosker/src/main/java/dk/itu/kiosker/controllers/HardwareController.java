@@ -55,9 +55,7 @@ class HardwareController {
     }
 
     public void handleHardwareSettings(LinkedHashMap settings) {
-        Object allowHome = settings.get("allowHome");
-        if (allowHome != null)
-            Constants.setAllowHome(mainActivity, (Boolean) allowHome);
+        Constants.setAllowHome(mainActivity, (Boolean) settings.get("allowHome"));
         settingsAreParsed = true;
     }
 

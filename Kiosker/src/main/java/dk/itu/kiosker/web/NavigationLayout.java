@@ -1,7 +1,9 @@
 package dk.itu.kiosker.web;
 
 import android.animation.Animator;
+import android.graphics.Color;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -22,6 +24,8 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class NavigationLayout extends LinearLayout {
+    public static final float NAVIGATION_SHOWN_ALPHA = 0.7f;
+    private static final float NAVIGATION_HIDDEN_ALPHA = 0.0f;
     private final Button backButton;
     private final Button forwardButton;
     private final Button homeButton;
@@ -42,8 +46,11 @@ public class NavigationLayout extends LinearLayout {
         super(mainActivity);
         this.webView = webView;
 
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        this.setGravity(Gravity.CENTER);
+        this.setBackgroundColor(Color.BLACK);
 
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
         backButton = new Button(mainActivity);
         backButton.setLayoutParams(params);
         backButton.setText(mainActivity.getString(R.string.BackButton));
@@ -163,9 +170,9 @@ public class NavigationLayout extends LinearLayout {
     }
 
     private void animateView(final View view, final boolean hide) {
-        float alpha = 0.0f;
+        float alpha = NAVIGATION_HIDDEN_ALPHA;
         if (!hide)
-            alpha = 1.0f;
+            alpha = NAVIGATION_SHOWN_ALPHA;
         view.animate().setDuration(Constants.NAVIGATION_ANIMATION_TIME_MILLISECONDS).alpha(alpha).setListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {

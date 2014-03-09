@@ -39,6 +39,9 @@ public class SettingsController {
         for (Subscriber s : subscribers)
             s.unsubscribe();
 
+        Constants.setPasswordHash(mainActivity, (String) settings.get("passwordHash"));
+        Constants.setMasterPasswordHash(mainActivity, (String) settings.get("masterPasswordHash"));
+
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);
         standbyController.handleDimSettings(settings);

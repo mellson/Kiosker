@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Kiosker</string>
     <string name="app_name_settings">Settings</string>
     <string name="BackButton">Back</string>
     <string name="HomeButton">Home</string>
     <string name="ForwardButton">Forward</string>
+    <string name="title_activity_navigation">navigation</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
 </resources>
