@@ -75,9 +75,9 @@
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
     <orderEntry type="library" exported="" name="retrofit-1.4.1" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.3.0" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-core-0.17.0-RC7" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-android-0.17.0" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-core-0.17.0" level="project" />
     <orderEntry type="library" exported="" name="jackson-core-2.3.2" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-android-0.17.0-RC7" level="project" />
   </component>
 </module>
 

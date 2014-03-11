@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
 import rx.Subscriber;
@@ -32,13 +33,16 @@ class StandbyController {
     }
 
     public void handleDimSettings(LinkedHashMap settings) {
-        if (settings.containsKey("idlePeriodMins")) {
-            int minutesUntilDim = (int) settings.get("idlePeriodMins");
-            idleDimObservable = Observable.timer(minutesUntilDim, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
+        int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
+        if (idlePeriodMins > 0) {
+            idleDimObservable = Observable.timer(idlePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
             idleDimObservable.subscribe(getIdleDimSubscriber());
         }
-        if (settings.containsKey("standbyStartTime") && settings.containsKey("standbyStopTime")) {
-            Time standbyStartTime = new Time(settings.get("standbyStartTime"));
+
+        String standbyStartTimeStr = SettingsExtractor.getString(settings, "standbyStartTime");
+        String standbyStopTimeStr = SettingsExtractor.getString(settings, "standbyStopTime");
+        if (!standbyStartTimeStr.isEmpty() && !standbyStopTimeStr.isEmpty()) {
+            Time standbyStartTime = new Time(standbyStartTimeStr);
 
             // Creating a simple idleDimObservable we can define a task on.
             Observable<Long> startObservable = Observable.from(1L);
@@ -55,7 +59,7 @@ class StandbyController {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(standbyStartTimeSubscriber);
 
-            Time standbyStopTime = new Time(settings.get("standbyStopTime"));
+            Time standbyStopTime = new Time(standbyStopTimeStr);
             // Creating a simple idleDimObservable we can define a task on.
             Observable<Long> stopObservable = Observable.from(1L);
 

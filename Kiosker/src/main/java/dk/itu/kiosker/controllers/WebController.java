@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
 import dk.itu.kiosker.web.NavigationLayout;
@@ -50,29 +51,21 @@ class WebController {
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
         this.subscribers = subscribers;
-        // Start our tap detection with a value-
         lastTap = new Date();
-        // Contains two web views, the main view and the sites view.
         webViews = new ArrayList<>();
-        homeWebPages = new ArrayList<>();
-        sitesWebPages = new ArrayList<>();
-        screenSaverWebPages = new ArrayList<>();
         navigationLayouts = new ArrayList<>();
     }
 
     public void handleWebSettings(LinkedHashMap settings) {
-        setTimers(settings);
-        Object tempLayout = settings.get("layout");
-        int layout = 0;
-        if (tempLayout != null)
-            layout = (int) tempLayout;
+        reloadPeriodMins = SettingsExtractor.getInteger(settings, "reloadPeriodMins");
+        errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
 
-        homeWebPages = (ArrayList<String>) settings.get("home");
-        if (homeWebPages == null)
-            homeWebPages = new ArrayList<>();
-        sitesWebPages = (ArrayList<String>) settings.get("sites");
-        if (sitesWebPages == null)
-            sitesWebPages = new ArrayList<>();
+        // Get the layout from settings, if there is no layout defined fallback to 0 - fullscreen layout.
+        int tempLayout = SettingsExtractor.getInteger(settings, "layout");
+        int layout = (tempLayout >= 0) ? tempLayout : 0;
+
+        homeWebPages = SettingsExtractor.getStringArrayList(settings, "home");
+        sitesWebPages = SettingsExtractor.getStringArrayList(settings, "sites");
 
         handleWebViewSetup(layout);
         handleAutoCycleSecondary(settings);
@@ -80,16 +73,16 @@ class WebController {
     }
 
     private void handleWebViewSetup(int layout) {
-        if (!homeWebPages.isEmpty()) {
+        if (homeWebPages.size() > 1) {
             float weight = layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
-            if (weight < 1.0 && (sitesWebPages == null || sitesWebPages.isEmpty()))
+            if (weight < 1.0 && sitesWebPages.isEmpty())
                 setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), 1.0f);
             if (weight > 0.0)
                 setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), weight);
         }
 
-        if (!sitesWebPages.isEmpty()) {
+        if (sitesWebPages.size() > 1) {
             float weight = layoutTranslator(layout, false);
             if (weight > 0.0)
                 setupWebView(false, sitesWebPages.get(0), sitesWebPages.get(1), weight);
@@ -97,18 +90,17 @@ class WebController {
     }
 
     private void handleAutoCycleSecondary(LinkedHashMap settings) {
-        Boolean allowSwitching = (Boolean) settings.get("allowSwitching");
+        boolean allowSwitching = SettingsExtractor.getBoolean(settings, "allowSwitching");
         Constants.setAllowSwitching(mainActivity, allowSwitching);
-        Boolean autoCycleSecondary = (Boolean) settings.get("autoCycleSecondary");
-        if (autoCycleSecondary != null && autoCycleSecondary && sitesWebPages.size() > 2) {
-            Integer autoCycleSecondaryPeriodMins = (Integer) settings.get("autoCycleSecondaryPeriodMins");
-            if (autoCycleSecondaryPeriodMins != null) {
+        boolean autoCycleSecondary = SettingsExtractor.getBoolean(settings, "autoCycleSecondary");
+        if (autoCycleSecondary && sitesWebPages.size() > 2) {
+            int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
+            if (autoCycleSecondaryPeriodMins > 0) {
                 Subscriber<Long> sitesCycleSubscriber = new Subscriber<Long>() {
                     int index = 0;
 
                     @Override
                     public void onCompleted() {
-
                     }
 
                     @Override
@@ -126,6 +118,7 @@ class WebController {
                             unsubscribe();
                     }
                 };
+
                 // Add our subscriber to subscribers so that we can cancel it later
                 subscribers.add(sitesCycleSubscriber);
                 Observable.timer(autoCycleSecondaryPeriodMins, TimeUnit.MINUTES)
@@ -136,32 +129,22 @@ class WebController {
         }
     }
 
-    private void handleScreenSaving(LinkedHashMap settings) {
-        Integer screenSavePeriodMins = (Integer) settings.get("screenSavePeriodMins");
-        if (screenSavePeriodMins != null) {
-            screenSaveLengthMins = (Integer) settings.get("screenSaveLengthMins");
-            screenSaverWebPages = (ArrayList<String>) settings.get("screensavers");
+    private void handleScreenSaving(LinkedHashMap settings) { //TODO: Check this for null validity.
+        int screenSavePeriodMins = SettingsExtractor.getInteger(settings, "screenSavePeriodMins");
+        if (screenSavePeriodMins > 0) {
+            screenSaveLengthMins = SettingsExtractor.getInteger(settings, "screenSaveLengthMins");
+            screenSaverWebPages = SettingsExtractor.getStringArrayList(settings, "screensavers");
             screenSaverObservable = Observable.timer(screenSavePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
             screenSaverObservable.subscribe(getScreenSaverSubscriber());
         }
-    }
-
-    private void setTimers(LinkedHashMap settings) {
-        Object reloadPeriodMinsObject = settings.get("reloadPeriodMins");
-        if (reloadPeriodMinsObject != null)
-            reloadPeriodMins = (int) reloadPeriodMinsObject;
-
-        Object errorReloadMinsObject = settings.get("errorReloadMins");
-        if (errorReloadMinsObject != null)
-            errorReloadMins = (int) errorReloadMinsObject;
     }
 
     /**
      * Setup the WebViews we need.
      *
      * @param homeView is this the main view, if so we don't allow the user to change the url.
-     * @param homeUrl the main url for this web view.
-     * @param title the title of the main url.
+     * @param homeUrl  the main url for this web view.
+     * @param title    the title of the main url.
      * @param weight   how much screen estate should this main take?
      */
     private void setupWebView(boolean homeView, String homeUrl, String title, float weight) {
@@ -251,7 +234,7 @@ class WebController {
         webView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             // Create a click listener that will open settings on the correct number of taps.
-            public boolean onTouch(View v, MotionEvent event) {
+            public boolean onTouch(View webView, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mainActivity.stopScheduledTasks();
 
@@ -278,10 +261,12 @@ class WebController {
 
                     lastTap = now;
                 }
+
                 // When the user lifts his finger, restart all scheduled tasks and show our navigation.
                 else if (event.getAction() == MotionEvent.ACTION_UP) {
                     mainActivity.startScheduledTasks();
-                    navigationLayouts.get(webViews.indexOf(v)).showNavigation();
+                    if (webViews.contains(webView))
+                        navigationLayouts.get(webViews.indexOf(webView)).showNavigation();
                 }
                 return false;
             }
@@ -310,7 +295,7 @@ class WebController {
         Observable.from(1).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Integer>() {
             @Override
             public void call(Integer integer) {
-                if (!webViews.isEmpty() && homeWebPages != null && !homeWebPages.isEmpty())
+                if (!webViews.isEmpty() && !homeWebPages.isEmpty())
                     for (int i = 0; i < webViews.size(); i++) {
                         if (i == 0)
                             webViews.get(i).loadUrl(homeWebPages.get(0));
@@ -376,6 +361,7 @@ class WebController {
                     unsubscribe();
             }
         };
+        // TODO add to subscribers here?
         return screenSaverSubscriber;
     }
 

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
+import dk.itu.kiosker.utils.SettingsExtractor;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -42,8 +43,8 @@ public class SettingsController {
         for (Subscriber s : subscribers)
             s.unsubscribe();
 
-        Constants.setPasswordHash(mainActivity, (String) settings.get("passwordHash"));
-        Constants.setMasterPasswordHash(mainActivity, (String) settings.get("masterPasswordHash"));
+        Constants.setPasswordHash(mainActivity, SettingsExtractor.getString(settings, "passwordHash"));
+        Constants.setMasterPasswordHash(mainActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);
@@ -86,7 +87,8 @@ public class SettingsController {
     private Subscriber<Long> getDelayedScheduledTasksSubscription() {
         delayedScheduledTasksSubscription = new Subscriber<Long>() {
             @Override
-            public void onCompleted() {}
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {

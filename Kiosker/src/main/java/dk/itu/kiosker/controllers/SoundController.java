@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
 import rx.Subscriber;
@@ -24,22 +25,17 @@ class SoundController {
     }
 
     void handleSoundSettings(LinkedHashMap settings) {
-        Object mute = settings.get("mute");
-        if (mute != null) {
-            if ((Boolean) mute) {
-                setVolume(0);
-                return;
-            }
+        boolean mute = SettingsExtractor.getBoolean(settings, "mute");
+        if (mute) {
+            setVolume(0);
+            return;
         }
-        Object volume = settings.get("volume");
-        int standardVolume = 50;
-        if (volume != null) {
-            standardVolume = (int) volume;
-            setVolume(standardVolume);
-        }
-        Object quietHoursStartTime = settings.get("quietHoursStartTime");
-        Object quietHoursStopTime = settings.get("quietHoursStopTime");
-        if (quietHoursStartTime != null && quietHoursStopTime != null) {
+        int volume = SettingsExtractor.getInteger(settings, "volume");
+        int standardVolume = volume > 0 ? volume : 50;
+        setVolume(standardVolume);
+        String quietHoursStartTime = SettingsExtractor.getString(settings, "quietHoursStartTime");
+        String quietHoursStopTime = SettingsExtractor.getString(settings, "quietHoursStopTime");
+        if (!quietHoursStartTime.isEmpty() && !quietHoursStopTime.isEmpty()) {
             Time startTime = new Time(quietHoursStartTime);
 
             // Creating a simple observable we can define a task on.

@@ -13,9 +13,9 @@ import rx.android.schedulers.AndroidSchedulers;
 
 public class RefreshController {
     private final MainActivity mainActivity;
+    public boolean deviceShouldBeReset;
     private Subscriber<Long> shortRefreshSubscriber;
     private Subscriber<Long> settingsSubscription;
-    public boolean deviceShouldBeReset;
 
     public RefreshController(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -75,7 +75,7 @@ public class RefreshController {
 
             @Override
             public void onError(Throwable e) {
-
+                Log.e(Constants.TAG, "Error while getting a short refresh subscriber.", e);
             }
 
             @Override

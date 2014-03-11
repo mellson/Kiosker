@@ -107,8 +107,6 @@ public class Constants {
     }
 
     public static void setPasswordHash(MainActivity activity, String passwordHash) {
-        if (passwordHash == null)
-            passwordHash = "";
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_PASSWORD_HASH_ID, passwordHash);
         editor.commit();
@@ -120,8 +118,6 @@ public class Constants {
     }
 
     public static void setMasterPasswordHash(MainActivity activity, String masterPasswordHash) {
-        if (masterPasswordHash == null)
-            masterPasswordHash = "";
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_MASTER_PASSWORD_HASH_ID, masterPasswordHash);
         editor.commit();

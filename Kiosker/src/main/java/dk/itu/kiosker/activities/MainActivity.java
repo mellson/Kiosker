@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
     //endregion
 
     //region Callback method.
+
     /**
      * This gets called whenever we return from our secret settings activity.
      */
@@ -114,6 +115,7 @@ public class MainActivity extends Activity {
     //endregion
 
     //region Life cycle methods.
+
     /**
      * This method gets called whenever our activity enters the background.
      * We use it to call our handler for this scenario handleMainActivityGoingAway.
@@ -162,6 +164,7 @@ public class MainActivity extends Activity {
     //endregion
 
     //region Helper methods.
+
     /**
      * Removes and invalidates all the views we have added to our main layout programmatically.
      */

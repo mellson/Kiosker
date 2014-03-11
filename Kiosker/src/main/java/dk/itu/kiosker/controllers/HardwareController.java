@@ -6,13 +6,19 @@ import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.SettingsExtractor;
 
 class HardwareController {
     private final MainActivity mainActivity;
-    private Boolean settingsAreParsed = false;
+    private Boolean hardwareSettingsParsed = false;
 
     public HardwareController(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+    }
+
+    public void handleHardwareSettings(LinkedHashMap settings) {
+        Constants.setAllowHome(mainActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
+        hardwareSettingsParsed = true;
     }
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
@@ -26,7 +32,7 @@ class HardwareController {
      * It requires root to work.
      */
     public void hideNavigationUI() {
-        if (!allowHome() && settingsAreParsed && Constants.isDeviceRooted()) {
+        if (!allowHome() && hardwareSettingsParsed && Constants.isDeviceRooted()) {
             try {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
@@ -52,11 +58,6 @@ class HardwareController {
                 Log.e(Constants.TAG, "Error while trying to show navigation ui.", e);
             }
         }
-    }
-
-    public void handleHardwareSettings(LinkedHashMap settings) {
-        Constants.setAllowHome(mainActivity, (Boolean) settings.get("allowHome"));
-        settingsAreParsed = true;
     }
 
     public void handleNavigationUI() {
