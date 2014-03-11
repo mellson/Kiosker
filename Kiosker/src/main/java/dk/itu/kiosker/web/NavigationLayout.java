@@ -42,7 +42,7 @@ public class NavigationLayout extends LinearLayout {
     private ArrayList<String> siteTitles;
     private ArrayList<String> siteUrls;
 
-    public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, String title, ArrayList<String> sitesWebPages) {
+    public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, ArrayList<String> sitesWebPages) {
         super(mainActivity);
         this.webView = webView;
 
@@ -79,7 +79,8 @@ public class NavigationLayout extends LinearLayout {
         homeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                titleSpinner.setSelection(0);
+                if (titleSpinner != null)
+                    titleSpinner.setSelection(0);
                 webView.loadUrl(homeUrl);
             }
         });
@@ -126,7 +127,7 @@ public class NavigationLayout extends LinearLayout {
      *
      * @return true if we are not on the home screen.
      */
-    void hideNavigation() {
+    public void hideNavigation() {
         if (this.getAlpha() > 0)
             animateView(this, true);
     }
@@ -181,10 +182,13 @@ public class NavigationLayout extends LinearLayout {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                if (hide)
+                if (hide) {
+                    view.setClickable(false);
                     view.setVisibility(View.INVISIBLE);
-                else
+                } else {
+                    view.setClickable(true);
                     view.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override

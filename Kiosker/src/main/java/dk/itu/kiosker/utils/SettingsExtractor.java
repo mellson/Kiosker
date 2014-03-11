@@ -29,4 +29,8 @@ public class SettingsExtractor {
     public static String getString(LinkedHashMap map, String key) {
         return map.containsKey(key) ? (String) map.get(key) : "";
     }
+
+    public static Double getDouble(LinkedHashMap map, String key) {
+        return map.containsKey(key) ? (Double) map.get(key) : -1.0;
+    }
 }

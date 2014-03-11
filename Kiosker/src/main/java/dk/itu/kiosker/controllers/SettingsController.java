@@ -135,6 +135,7 @@ public class SettingsController {
     public void unsubscribeScheduledTasks() {
         for (Subscriber s : subscribers)
             s.unsubscribe();
+        subscribers.clear();
     }
 
     public void handleNavigationUI() {

@@ -33,16 +33,16 @@ class SoundController {
         int volume = SettingsExtractor.getInteger(settings, "volume");
         int standardVolume = volume > 0 ? volume : 50;
         setVolume(standardVolume);
-        String quietHoursStartTime = SettingsExtractor.getString(settings, "quietHoursStartTime");
-        String quietHoursStopTime = SettingsExtractor.getString(settings, "quietHoursStopTime");
-        if (!quietHoursStartTime.isEmpty() && !quietHoursStopTime.isEmpty()) {
+        Double quietHoursStartTime = SettingsExtractor.getDouble(settings, "quietHoursStartTime");
+        Double quietHoursStopTime = SettingsExtractor.getDouble(settings, "quietHoursStopTime");
+        if (quietHoursStartTime >= 0 && quietHoursStopTime >= 0) {
             Time startTime = new Time(quietHoursStartTime);
 
             // Creating a simple observable we can define a task on.
             Observable<Integer> startObservable = Observable.from(1);
 
             // Create a subscriber that will set the volume to 0.
-            Subscriber<Integer> quietHoursStartTimeSubscriber = setVolumeSubscriber(0);
+            Subscriber<Integer> quietHoursStartTimeSubscriber = getVolumeSubscriber(0);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(quietHoursStartTimeSubscriber);
@@ -56,7 +56,7 @@ class SoundController {
             // Repeat the above tasks for the stop time.
             Time stopTime = new Time(quietHoursStopTime);
             Observable<Integer> stopObservable = Observable.from(1);
-            Subscriber<Integer> quietHoursStopTimeSubscriber = setVolumeSubscriber(standardVolume);
+            Subscriber<Integer> quietHoursStopTimeSubscriber = getVolumeSubscriber(standardVolume);
             subscribers.add(quietHoursStopTimeSubscriber);
             stopObservable
                     .delaySubscription(stopTime.secondsUntil(), TimeUnit.SECONDS)
@@ -70,7 +70,7 @@ class SoundController {
         }
     }
 
-    private Subscriber<Integer> setVolumeSubscriber(final int volume) {
+    private Subscriber<Integer> getVolumeSubscriber(final int volume) {
         return new Subscriber<Integer>() {
             @Override
             public void onCompleted() {

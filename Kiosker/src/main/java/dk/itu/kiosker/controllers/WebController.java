@@ -3,6 +3,7 @@ package dk.itu.kiosker.controllers;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,12 +15,12 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
@@ -40,13 +41,10 @@ class WebController {
     private Date lastTap;
     private ArrayList<String> homeWebPages;
     private ArrayList<String> sitesWebPages;
-    private ArrayList<String> screenSaverWebPages;
     private int reloadPeriodMins;
     private int errorReloadMins;
-    // Screen saver subscription
-    private Subscriber<Long> screenSaverSubscriber;
-    private Observable<Long> screenSaverObservable;
-    private int screenSaveLengthMins;
+    private boolean fullScreenMode;
+    private ScreenSaverController screenSaverController;
 
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
@@ -63,97 +61,94 @@ class WebController {
         // Get the layout from settings, if there is no layout defined fallback to 0 - fullscreen layout.
         int tempLayout = SettingsExtractor.getInteger(settings, "layout");
         int layout = (tempLayout >= 0) ? tempLayout : 0;
+        fullScreenMode = layout == 0;
 
         homeWebPages = SettingsExtractor.getStringArrayList(settings, "home");
         sitesWebPages = SettingsExtractor.getStringArrayList(settings, "sites");
 
         handleWebViewSetup(layout);
         handleAutoCycleSecondary(settings);
-        handleScreenSaving(settings);
+
+        screenSaverController = new ScreenSaverController(mainActivity, subscribers, this);
+        screenSaverController.handleScreenSaving(settings);
     }
 
     private void handleWebViewSetup(int layout) {
         if (homeWebPages.size() > 1) {
-            float weight = layoutTranslator(layout, true);
+            float weight = WebHelper.layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
             if (weight < 1.0 && sitesWebPages.isEmpty())
-                setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), 1.0f);
+                setupWebView(true, homeWebPages.get(0), 1.0f, true);
             if (weight > 0.0)
-                setupWebView(true, homeWebPages.get(0), homeWebPages.get(1), weight);
+                setupWebView(true, homeWebPages.get(0), weight, true);
         }
 
-        if (sitesWebPages.size() > 1) {
-            float weight = layoutTranslator(layout, false);
+        if (sitesWebPages.size() > 1 && !fullScreenMode) {
+            float weight = WebHelper.layoutTranslator(layout, false);
             if (weight > 0.0)
-                setupWebView(false, sitesWebPages.get(0), sitesWebPages.get(1), weight);
+                setupWebView(false, sitesWebPages.get(0), weight, true);
         }
     }
 
     private void handleAutoCycleSecondary(LinkedHashMap settings) {
-        boolean allowSwitching = SettingsExtractor.getBoolean(settings, "allowSwitching");
-        Constants.setAllowSwitching(mainActivity, allowSwitching);
-        boolean autoCycleSecondary = SettingsExtractor.getBoolean(settings, "autoCycleSecondary");
-        if (autoCycleSecondary && sitesWebPages.size() > 2) {
-            int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
-            if (autoCycleSecondaryPeriodMins > 0) {
-                Subscriber<Long> sitesCycleSubscriber = new Subscriber<Long>() {
-                    int index = 0;
+        // Only handle secondary cycling if we are not in fullscreen layout
+        if (!fullScreenMode) {
+            boolean allowSwitching = SettingsExtractor.getBoolean(settings, "allowSwitching");
+            Constants.setAllowSwitching(mainActivity, allowSwitching);
+            boolean autoCycleSecondary = SettingsExtractor.getBoolean(settings, "autoCycleSecondary");
+            if (autoCycleSecondary && sitesWebPages.size() > 2) {
+                int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
+                if (autoCycleSecondaryPeriodMins > 0) {
+                    Subscriber<Long> sitesCycleSubscriber = new Subscriber<Long>() {
+                        int index = 0;
 
-                    @Override
-                    public void onCompleted() {
-                    }
+                        @Override
+                        public void onCompleted() {
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(Constants.TAG, "Error while cycling secondary screen.", e);
-                    }
+                        @Override
+                        public void onError(Throwable e) {
+                            Log.e(Constants.TAG, "Error while cycling secondary screen.", e);
+                        }
 
-                    @Override
-                    public void onNext(Long l) {
-                        if (webViews.size() > 1) {
-                            Log.d(Constants.TAG, "Cycling secondary screen.");
-                            String url = sitesWebPages.get((index += 2) % sitesWebPages.size());
-                            webViews.get(1).loadUrl(url);
-                        } else
-                            unsubscribe();
-                    }
-                };
+                        @Override
+                        public void onNext(Long l) {
+                            if (webViews.size() > 1) {
+                                Log.d(Constants.TAG, "Cycling secondary screen.");
+                                String url = sitesWebPages.get((index += 2) % sitesWebPages.size());
+                                webViews.get(1).loadUrl(url);
+                            } else
+                                unsubscribe();
+                        }
+                    };
 
-                // Add our subscriber to subscribers so that we can cancel it later
-                subscribers.add(sitesCycleSubscriber);
-                Observable.timer(autoCycleSecondaryPeriodMins, TimeUnit.MINUTES)
-                        .repeat()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(sitesCycleSubscriber);
+                    // Add our subscriber to subscribers so that we can cancel it later
+                    subscribers.add(sitesCycleSubscriber);
+                    Observable.timer(autoCycleSecondaryPeriodMins, TimeUnit.MINUTES)
+                            .repeat()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(sitesCycleSubscriber);
+                }
             }
-        }
-    }
-
-    private void handleScreenSaving(LinkedHashMap settings) { //TODO: Check this for null validity.
-        int screenSavePeriodMins = SettingsExtractor.getInteger(settings, "screenSavePeriodMins");
-        if (screenSavePeriodMins > 0) {
-            screenSaveLengthMins = SettingsExtractor.getInteger(settings, "screenSaveLengthMins");
-            screenSaverWebPages = SettingsExtractor.getStringArrayList(settings, "screensavers");
-            screenSaverObservable = Observable.timer(screenSavePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
-            screenSaverObservable.subscribe(getScreenSaverSubscriber());
         }
     }
 
     /**
      * Setup the WebViews we need.
-     *
-     * @param homeView is this the main view, if so we don't allow the user to change the url.
+     *  @param homeView is this the main view, if so we don't allow the user to change the url.
      * @param homeUrl  the main url for this web view.
-     * @param title    the title of the main url.
      * @param weight   how much screen estate should this main take?
+     * @param reloadWebView should this be reloaded according to the reloadPeriodMins from the settings?
      */
-    private void setupWebView(boolean homeView, String homeUrl, String title, float weight) {
+    protected void setupWebView(boolean homeView, String homeUrl, float weight, boolean reloadWebView) {
         WebView webView = getWebView();
         webViews.add(webView);
         webView.loadUrl(homeUrl);
         addTapToSettings(webView);
-        if (reloadPeriodMins > 0) {
-            Subscriber<Long> reloadSubscriber = reloadSubscriber(webView);
+        if (reloadPeriodMins > 0 && reloadWebView) {
+            Subscriber<Long> reloadSubscriber = WebHelper.reloadSubscriber(webView);
+
+            // Add our subscriber to subscribers so that we can cancel it later
             subscribers.add(reloadSubscriber);
             Observable.timer(reloadPeriodMins, TimeUnit.MINUTES)
                     .repeat()
@@ -167,8 +162,9 @@ class WebController {
         frameLayout.setLayoutParams(params);
 
         // Add navigation options to the web view.
-        NavigationLayout navigationLayout = new NavigationLayout(homeView, mainActivity, webView, title, sitesWebPages);
-        navigationLayout.setAlpha(0);
+        NavigationLayout navigationLayout = new NavigationLayout(homeView, mainActivity, webView, sitesWebPages);
+        navigationLayout.setGravity(Gravity.BOTTOM);
+        navigationLayout.hideNavigation();
         navigationLayouts.add(navigationLayout);
 
         // Add the web view and our navigation in a frame layout.
@@ -177,30 +173,7 @@ class WebController {
         mainActivity.addView(frameLayout);
     }
 
-    /**
-     * Get subscriber for reloading the web view.
-     *
-     * @param webView the web view you want reloaded.
-     */
-    private Subscriber<Long> reloadSubscriber(final WebView webView) {
-        return new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
 
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while reloading web view.", e);
-            }
-
-            @Override
-            public void onNext(Long aLong) {
-                Log.d(Constants.TAG, String.format("Reloading web view with url %s.", webView.getUrl()));
-                webView.reload();
-            }
-        };
-    }
 
     /**
      * Returns a WebView with a specified weight.
@@ -223,7 +196,6 @@ class WebController {
         webSettings.setDatabaseEnabled(true);
         return webView;
     }
-
 
     /**
      * Add our secret taps for opening settings to a WebView.
@@ -280,10 +252,14 @@ class WebController {
         for (NavigationLayout navigationLayout : navigationLayouts) {
             navigationLayout.removeAllViews();
         }
-        navigationLayouts.clear();
-        webViews.clear();
-        homeWebPages.clear();
-        sitesWebPages.clear();
+        clearArray(navigationLayouts);
+        clearArray(webViews);
+        clearArray(homeWebPages);
+        clearArray(sitesWebPages);
+    }
+
+    private void clearArray(ArrayList array) {
+        if (array != null) array.clear();
     }
 
     /**
@@ -307,88 +283,10 @@ class WebController {
     }
 
     public void startScreenSaverSubscription() {
-        // Restart the idle time out if we are not in the standby period.
-        if (screenSaverObservable != null && !mainActivity.currentlyInStandbyPeriod)
-            screenSaverObservable.subscribe(getScreenSaverSubscriber());
+        screenSaverController.startScreenSaverSubscription();
     }
 
     public void stopScreenSaverSubscription() {
-        screenSaverSubscriber.unsubscribe();
-        if (mainActivity.currentlyScreenSaving) {
-            mainActivity.currentlyScreenSaving = false;
-            mainActivity.refreshDevice();
-        }
-    }
-
-    Subscriber<Long> getScreenSaverSubscriber() {
-        screenSaverSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-                Observable.timer(screenSaveLengthMins, TimeUnit.MINUTES)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Long>() {
-                            @Override
-                            public void call(Long aLong) {
-                                Log.d(Constants.TAG, "Stopping screensaver.");
-                                // Here we are finished screen saving and we return to the normal layout.
-                                mainActivity.currentlyScreenSaving = false;
-                                mainActivity.refreshDevice();
-                            }
-                        });
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while screen saving.", e);
-            }
-
-            @Override
-            public void onNext(Long l) {
-                if (!screenSaverWebPages.isEmpty()) {
-                    mainActivity.currentlyScreenSaving = true;
-
-                    Random rnd = new Random();
-                    int randomIndex = rnd.nextInt(screenSaverWebPages.size() / 2) * 2;
-
-                    // Clean current view .
-                    mainActivity.cleanUpMainView();
-
-                    // Make a new full screen web view with a random url from the screen saver urls.
-                    setupWebView(false, screenSaverWebPages.get(randomIndex), screenSaverWebPages.get(randomIndex + 1), 1.0f);
-
-                    Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex + 1)));
-                } else
-                    unsubscribe();
-            }
-        };
-        // TODO add to subscribers here?
-        return screenSaverSubscriber;
-    }
-
-    private float layoutTranslator(int layout, boolean mainWebPage) {
-        switch (layout) {
-            case 1:
-                return 0.5f;
-            case 2:
-                if (mainWebPage)
-                    return 0.6f;
-                else
-                    return 0.4f;
-            case 3:
-                if (mainWebPage)
-                    return 0.7f;
-                else
-                    return 0.3f;
-            case 4:
-                if (mainWebPage)
-                    return 0.8f;
-                else
-                    return 0.2f;
-            default: // Our default is the fullscreen layout
-                if (mainWebPage)
-                    return 1.0f;
-                else
-                    return 0f;
-        }
+        screenSaverController.stopScreenSaverSubscription();
     }
 }

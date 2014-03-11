@@ -20,7 +20,7 @@ public class ActivityController {
      * If it was it does nothing.
      * If the change was unwanted we go back to this activity after a given period of time.
      */
-    public static void handleMainActivityGoingAway(final MainActivity mainActivity) {
+    public static void handleMainActivityGoingAway(final MainActivity mainActivity) { // TODO er det her den bruger meget strøm
         if (!showingAllowedActivity(mainActivity))
             getCountdownString().subscribe(new Subscriber<String>() {
                 @Override

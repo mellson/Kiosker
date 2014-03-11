@@ -32,6 +32,20 @@ class StandbyController {
         this.subscribers = subscribers;
     }
 
+    public static void unDimDevice(MainActivity mainActivity) {
+        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+        params.screenBrightness = -1;
+        mainActivity.getWindow().setAttributes(params);
+    }
+
+    public static void dimDevice(MainActivity mainActivity) {
+        if (!mainActivity.currentlyScreenSaving) {
+            WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+            params.screenBrightness = 0;
+            mainActivity.getWindow().setAttributes(params);
+        }
+    }
+
     public void handleDimSettings(LinkedHashMap settings) {
         int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
         if (idlePeriodMins > 0) {
@@ -103,7 +117,7 @@ class StandbyController {
                     Log.d(Constants.TAG, "Ending standby.");
                     mainActivity.currentlyInStandbyPeriod = false;
                     wakeDevice();
-                    unDimDevice();
+                    unDimDevice(mainActivity);
                 }
             }
         };
@@ -133,7 +147,7 @@ class StandbyController {
             @Override
             public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Idle time started.");
-                dimDevice();
+                dimDevice(mainActivity);
                 if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)
                     mainActivity.backToMainActivity();
             }
@@ -141,21 +155,8 @@ class StandbyController {
         return idleDimSubscriber;
     }
 
-    private void unDimDevice() {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
-        params.alpha = 1.0f;
-        params.screenBrightness = -1;
-        mainActivity.getWindow().setAttributes(params);
-    }
-
-    private void dimDevice() {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
-        params.screenBrightness = 0;
-        mainActivity.getWindow().setAttributes(params);
-    }
-
     public void stopDimSubscription() {
-        unDimDevice();
+        unDimDevice(mainActivity);
         idleDimSubscriber.unsubscribe();
     }
 
