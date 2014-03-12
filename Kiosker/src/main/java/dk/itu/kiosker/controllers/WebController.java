@@ -129,8 +129,9 @@ class WebController {
             public void onNext(Long l) {
                 if (webViews.size() > 1) {
                     Log.d(Constants.TAG, "Cycling secondary screen.");
-                    secondaryCycleIndex = secondaryCycleIndex++ % sitesWebPages.size();
+                    secondaryCycleIndex = (secondaryCycleIndex + 1) % sitesWebPages.size();
                     String url = sitesWebPages.get(secondaryCycleIndex).url;
+                    // Get the secondary web view and load the next url in that
                     webViews.get(1).loadUrl(url);
                 } else {
                     unsubscribe();
@@ -337,12 +338,10 @@ class WebController {
     }
 
     public void startCycleSecondarySubscription() {
-        Log.d(Constants.TAG, "Starting cycle subscriber.");
         secondaryCycleObservable.subscribe(getCycleSecondarySubscriber());
     }
 
     public void stopCycleSecondarySubscription() {
-        Log.d(Constants.TAG, "Stopping cycle subscriber.");
         if (secondaryCycleSubscriber != null && !secondaryCycleSubscriber.isUnsubscribed()) {
             secondaryCycleSubscriber.unsubscribe();
             subscribers.remove(secondaryCycleSubscriber);

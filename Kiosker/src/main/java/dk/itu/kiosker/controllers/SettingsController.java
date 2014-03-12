@@ -126,18 +126,20 @@ public class SettingsController {
         refreshController.stopShortRefreshSubscription();
     }
 
+    public void unsubscribeScheduledTasks() {
+        if (mainActivity.currentlyInStandbyPeriod)
+            subscribers.remove(mainActivity.wakeSubscriber);
+        for (Subscriber s : subscribers)
+            s.unsubscribe();
+        subscribers.clear();
+    }
+
     public void reloadWebViews() {
         webController.reloadWebViews();
     }
 
     public void clearWebViews() {
         webController.clearWebViews();
-    }
-
-    public void unsubscribeScheduledTasks() {
-        for (Subscriber s : subscribers)
-            s.unsubscribe();
-        subscribers.clear();
     }
 
     public void handleNavigationUI() {

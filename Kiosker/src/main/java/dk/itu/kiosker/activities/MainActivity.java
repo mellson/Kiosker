@@ -18,6 +18,7 @@ import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -26,6 +27,7 @@ public class MainActivity extends Activity {
     public boolean currentlyInStandbyPeriod;
     public boolean currentlyScreenSaving;
     public boolean userIsInteractingWithDevice;
+    public Subscriber<Long> wakeSubscriber;
     public LinearLayout mainLayout;
     private SettingsController settingsController;
     private StatusUpdater statusUpdater;
@@ -117,6 +119,13 @@ public class MainActivity extends Activity {
 
     //region Life cycle methods.
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        settingsController.handleOnPause();
+        Log.d(Constants.TAG, "onPause() called");
+    }
+
     /**
      * This method gets called whenever our activity enters the background.
      * We use it to call our handler for this scenario handleMainActivityGoingAway.
@@ -126,7 +135,13 @@ public class MainActivity extends Activity {
         super.onStop();
         Log.d(Constants.TAG, "onStop() called");
         showNavigationUI();
-        ActivityController.handleMainActivityGoingAway(this);
+        if (!currentlyInStandbyPeriod)
+            ActivityController.handleMainActivityGoingAway(this);
+        if (currentlyInStandbyPeriod) {
+            settingsController.unsubscribeScheduledTasks();
+            settingsController.stopScheduledTasks();
+        }
+        cleanUpMainView();
     }
 
     @Override
@@ -137,23 +152,13 @@ public class MainActivity extends Activity {
         Log.d(Constants.TAG, "onResume() called");
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        settingsController.handleOnPause();
-        Log.d(Constants.TAG, "onPause() called");
-    }
-
 
     @Override
     public void onStart() {
         super.onStart();
-        if (settingsController != null)
-            handleNavigationUI();
-        else
-            setupApplication();
-        setFullScreenImmersiveMode();
         Log.d(Constants.TAG, "onStart() called");
+        setFullScreenImmersiveMode();
+        refreshDevice();
     }
 
     @Override

@@ -42,8 +42,10 @@ public class RefreshController {
 
             @Override
             public void onNext(Long aLong) {
-                if (!mainActivity.userIsInteractingWithDevice) mainActivity.refreshDevice();
-                else deviceShouldBeReset = true;
+                if (!mainActivity.userIsInteractingWithDevice)
+                    mainActivity.refreshDevice();
+                else
+                    deviceShouldBeReset = true;
             }
         };
 
@@ -52,7 +54,6 @@ public class RefreshController {
         int secondsUntil20 = Time.secondsUntil(20, 0);
         int secondsUntilNextUpdate = secondsUntil8 < secondsUntil20 ? secondsUntil8 : secondsUntil20;
 
-        settingsSubscription.onNext(1L);
         Observable<Long> settingsObservable = Observable.from(1L);
         settingsObservable
                 .delay(12, TimeUnit.HOURS)

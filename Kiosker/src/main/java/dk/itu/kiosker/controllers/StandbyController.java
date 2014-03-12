@@ -32,20 +32,6 @@ class StandbyController {
         this.subscribers = subscribers;
     }
 
-    public static void unDimDevice(MainActivity mainActivity) {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
-        params.screenBrightness = -1;
-        mainActivity.getWindow().setAttributes(params);
-    }
-
-    public static void dimDevice(MainActivity mainActivity) {
-        if (!mainActivity.currentlyScreenSaving) {
-            WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
-            params.screenBrightness = 0;
-            mainActivity.getWindow().setAttributes(params);
-        }
-    }
-
     public void handleDimSettings(LinkedHashMap settings) {
         int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
         if (idlePeriodMins > 0) {
@@ -96,8 +82,22 @@ class StandbyController {
         }
     }
 
-    private Subscriber<Long> getStandbySubscriber(final Boolean dimScreen) {
-        return new Subscriber<Long>() {
+    public static void unDimDevice(MainActivity mainActivity) {
+        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+        params.screenBrightness = -1;
+        mainActivity.getWindow().setAttributes(params);
+    }
+
+    public static void dimDevice(MainActivity mainActivity) {
+        if (!mainActivity.currentlyScreenSaving) {
+            WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+            params.screenBrightness = 0;
+            mainActivity.getWindow().setAttributes(params);
+        }
+    }
+
+    private Subscriber<Long> getStandbySubscriber(final Boolean startStandby) {
+        Subscriber<Long> subscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
             }
@@ -109,7 +109,7 @@ class StandbyController {
 
             @Override
             public void onNext(Long aLong) {
-                if (dimScreen) {
+                if (startStandby) {
                     Log.d(Constants.TAG, "Starting standby.");
                     mainActivity.currentlyInStandbyPeriod = true;
                     removeKeepScreenOn();
@@ -121,16 +121,10 @@ class StandbyController {
                 }
             }
         };
-    }
-
-    /**
-     * This method removes the request to keep the screen on.
-     * This will make the device go to sleep after the normal screen timeout setting on the device.
-     */
-    void removeKeepScreenOn() {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
-        params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        mainActivity.getWindow().setAttributes(params);
+        // If it is the wake subscriber add it to the main activity, so we can keep it alive if we reach standby mode.
+        if (!startStandby)
+            mainActivity.wakeSubscriber = subscriber;
+        return subscriber;
     }
 
     private Subscriber<Long> getIdleDimSubscriber() {
@@ -150,14 +144,18 @@ class StandbyController {
                 dimDevice(mainActivity);
                 if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)
                     mainActivity.backToMainActivity();
+                if (mainActivity.currentlyInStandbyPeriod)
+                    removeKeepScreenOn();
             }
         };
+        subscribers.add(idleDimSubscriber);
         return idleDimSubscriber;
     }
 
     public void stopDimSubscription() {
         unDimDevice(mainActivity);
-        idleDimSubscriber.unsubscribe();
+        if (idleDimSubscriber != null && !idleDimSubscriber.isUnsubscribed())
+            idleDimSubscriber.unsubscribe();
     }
 
     public void startDimSubscription() {
@@ -169,11 +167,20 @@ class StandbyController {
             Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(getIdleDimSubscriber());
     }
 
+    /**
+     * This method removes the request to keep the screen on.
+     * This will make the device go to sleep after the normal screen timeout setting on the device.
+     */
+    void removeKeepScreenOn() {
+        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+        params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        mainActivity.getWindow().setAttributes(params);
+    }
+
     void keepScreenOn() {
         WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
         params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
         mainActivity.getWindow().setAttributes(params);
-
         createWakeLocks();
     }
 
@@ -195,7 +202,6 @@ class StandbyController {
         KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
         keyguardLock.disableKeyguard();
         keepScreenOn();
-        mainActivity.startScheduledTasks();
     }
 
     public void handleOnResume() {
