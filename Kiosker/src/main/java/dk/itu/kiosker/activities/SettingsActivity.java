@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -214,7 +215,7 @@ public class SettingsActivity extends Activity {
     /**
      * Setup view so that touches will hide the onscreen keyboard
      *
-     * @param view
+     * @param view the view to add touches to.
      */
     public void allowTouches(View view) {
         //Set up touch listener for non-text box views to hide keyboard.
@@ -246,12 +247,13 @@ public class SettingsActivity extends Activity {
         try {
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
             byte[] array = md.digest(md5.getBytes());
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < array.length; ++i) {
-                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3));
+            StringBuilder sb = new StringBuilder();
+            for (byte anArray : array) {
+                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100).substring(1, 3));
             }
             return sb.toString();
         } catch (java.security.NoSuchAlgorithmException e) {
+            Log.e(Constants.TAG, "Error while trying to create MD5 value.", e);
         }
         return null;
     }

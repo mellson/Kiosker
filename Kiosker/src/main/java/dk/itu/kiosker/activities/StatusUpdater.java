@@ -14,9 +14,9 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 class StatusUpdater {
-    private TextView mainStatusTextView;
-    private TextView subStatusTextView;
-    private LinearLayout mainLayout;
+    private final TextView mainStatusTextView;
+    private final TextView subStatusTextView;
+    private final LinearLayout mainLayout;
 
     public StatusUpdater(MainActivity mainActivity) {
         mainStatusTextView = getTextView(60, 0.7f, mainActivity);

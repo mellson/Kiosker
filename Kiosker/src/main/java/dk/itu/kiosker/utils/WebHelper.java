@@ -1,42 +1,6 @@
 package dk.itu.kiosker.utils;
 
-import android.util.Log;
-import android.webkit.WebView;
-
-import dk.itu.kiosker.models.Constants;
-import rx.Subscriber;
-
 public class WebHelper {
-    /**
-     * Get subscriber for reloading the web view.
-     *
-     * @param webView the web view you want reloaded.
-     */
-    public static Subscriber<Long> reloadSubscriber(final WebView webView) {
-        return new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while reloading web view.", e);
-            }
-
-            @Override
-            public void onNext(Long aLong) {
-                String url = webView.getUrl();
-                if (url == null)
-                    this.unsubscribe();
-                else {
-                    Log.d(Constants.TAG, String.format("Reloading web view with url %s.", webView.getUrl()));
-                    webView.reload();
-                }
-            }
-        };
-    }
-
     /**
      * Translate a layout int to a float weight value used to distribute web views on the screen.
      * @param layout the layout to transform. 0 equals full screen.

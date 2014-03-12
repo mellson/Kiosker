@@ -3,14 +3,12 @@ package dk.itu.kiosker.controllers;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
+import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
 import dk.itu.kiosker.web.NavigationLayout;
@@ -45,6 +43,9 @@ class WebController {
     private int errorReloadMins;
     private boolean fullScreenMode;
     private ScreenSaverController screenSaverController;
+    private Subscriber<Long> secondaryCycleSubscriber;
+    private int secondaryCycleIndex;
+    private Observable<Long> secondaryCycleObservable;
 
     public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
         this.mainActivity = mainActivity;
@@ -99,38 +100,47 @@ class WebController {
             if (autoCycleSecondary && sitesWebPages.size() > 2) {
                 int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
                 if (autoCycleSecondaryPeriodMins > 0) {
-                    Subscriber<Long> sitesCycleSubscriber = new Subscriber<Long>() {
-                        int index = 0;
-
-                        @Override
-                        public void onCompleted() {
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            Log.e(Constants.TAG, "Error while cycling secondary screen.", e);
-                        }
-
-                        @Override
-                        public void onNext(Long l) {
-                            if (webViews.size() > 1) {
-                                Log.d(Constants.TAG, "Cycling secondary screen.");
-                                String url = sitesWebPages.get((index += 2) % sitesWebPages.size());
-                                webViews.get(1).loadUrl(url);
-                            } else
-                                unsubscribe();
-                        }
-                    };
-
-                    // Add our subscriber to subscribers so that we can cancel it later
-                    subscribers.add(sitesCycleSubscriber);
-                    Observable.timer(autoCycleSecondaryPeriodMins, TimeUnit.MINUTES)
+                    secondaryCycleObservable = Observable.timer(autoCycleSecondaryPeriodMins, TimeUnit.MINUTES)
                             .repeat()
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(sitesCycleSubscriber);
+                            .observeOn(AndroidSchedulers.mainThread());
+                    secondaryCycleObservable.subscribe(getCycleSecondarySubscriber());
                 }
             }
         }
+    }
+
+    private Subscriber<Long> getCycleSecondarySubscriber() {
+        if (secondaryCycleSubscriber != null && !secondaryCycleSubscriber.isUnsubscribed()) {
+            secondaryCycleSubscriber.unsubscribe();
+            subscribers.remove(secondaryCycleSubscriber);
+        }
+
+        secondaryCycleSubscriber = new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(Constants.TAG, "Error while cycling secondary screen.", e);
+            }
+
+            @Override
+            public void onNext(Long l) {
+                if (webViews.size() > 1) {
+                    Log.d(Constants.TAG, "Cycling secondary screen.");
+                    secondaryCycleIndex = (secondaryCycleIndex += 2) % sitesWebPages.size();
+                    String url = sitesWebPages.get(secondaryCycleIndex);
+                    webViews.get(1).loadUrl(url);
+                } else {
+                    unsubscribe();
+                    subscribers.remove(this);
+                }
+            }
+        };
+        // Add our subscriber to subscribers so that we can cancel it later
+        subscribers.add(secondaryCycleSubscriber);
+        return secondaryCycleSubscriber;
     }
 
     /**
@@ -138,15 +148,15 @@ class WebController {
      *  @param homeView is this the main view, if so we don't allow the user to change the url.
      * @param homeUrl  the main url for this web view.
      * @param weight   how much screen estate should this main take?
-     * @param reloadWebView should this be reloaded according to the reloadPeriodMins from the settings?
+     * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
-    protected void setupWebView(boolean homeView, String homeUrl, float weight, boolean reloadWebView) {
+    protected void setupWebView(boolean homeView, String homeUrl, float weight, boolean allowReloading) {
         WebView webView = getWebView();
         webViews.add(webView);
         webView.loadUrl(homeUrl);
         addTapToSettings(webView);
-        if (reloadPeriodMins > 0 && reloadWebView) {
-            Subscriber<Long> reloadSubscriber = WebHelper.reloadSubscriber(webView);
+        if (reloadPeriodMins > 0 && allowReloading) {
+            Subscriber<Long> reloadSubscriber = reloadSubscriber(webView);
 
             // Add our subscriber to subscribers so that we can cancel it later
             subscribers.add(reloadSubscriber);
@@ -158,19 +168,18 @@ class WebController {
 
         // A frame layout enables us to overlay the navigation on the web view.
         FrameLayout frameLayout = new FrameLayout(mainActivity);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, weight);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         frameLayout.setLayoutParams(params);
 
         // Add navigation options to the web view.
         NavigationLayout navigationLayout = new NavigationLayout(homeView, mainActivity, webView, sitesWebPages);
-        navigationLayout.setGravity(Gravity.BOTTOM);
         navigationLayout.hideNavigation();
         navigationLayouts.add(navigationLayout);
 
         // Add the web view and our navigation in a frame layout.
         frameLayout.addView(webView);
         frameLayout.addView(navigationLayout);
-        mainActivity.addView(frameLayout);
+        mainActivity.addView(frameLayout, weight);
     }
 
 
@@ -186,7 +195,6 @@ class WebController {
         final WebView webView = new WebView(mainActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
         webView.setWebChromeClient(new KioskerWebChromeClient());
-        webView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setBuiltInZoomControls(true);
@@ -204,6 +212,7 @@ class WebController {
      */
     private void addTapToSettings(WebView webView) {
         webView.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressWarnings("SuspiciousMethodCalls")
             @Override
             // Create a click listener that will open settings on the correct number of taps.
             public boolean onTouch(View webView, MotionEvent event) {
@@ -282,11 +291,56 @@ class WebController {
         });
     }
 
+    /**
+     * Get subscriber for reloading the web view.
+     *
+     * @param webView the web view you want reloaded.
+     */
+    private Subscriber<Long> reloadSubscriber(final WebView webView) {
+        return new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(Constants.TAG, "Error while reloading web view.", e);
+            }
+
+            @Override
+            public void onNext(Long aLong) {
+                String url = webView.getUrl();
+                if (url == null) {
+                    unsubscribe();
+                    subscribers.remove(this);
+                }
+                else {
+                    Log.d(Constants.TAG, String.format("Reloading web view with url %s.", url));
+                    webView.reload();
+                }
+            }
+        };
+    }
+
     public void startScreenSaverSubscription() {
         screenSaverController.startScreenSaverSubscription();
     }
 
     public void stopScreenSaverSubscription() {
         screenSaverController.stopScreenSaverSubscription();
+    }
+
+    public void startCycleSecondarySubscription() {
+        Log.d(Constants.TAG, "Starting cycle subscriber.");
+        secondaryCycleObservable.subscribe(getCycleSecondarySubscriber());
+    }
+
+    public void stopCycleSecondarySubscription() {
+        Log.d(Constants.TAG, "Stopping cycle subscriber.");
+        if (secondaryCycleSubscriber != null && !secondaryCycleSubscriber.isUnsubscribed()) {
+            secondaryCycleSubscriber.unsubscribe();
+            subscribers.remove(secondaryCycleSubscriber);
+        }
     }
 }

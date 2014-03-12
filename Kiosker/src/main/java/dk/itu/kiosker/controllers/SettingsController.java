@@ -97,9 +97,10 @@ public class SettingsController {
 
             @Override
             public void onNext(Long aLong) {
-                Log.d(Constants.TAG, "Starting scheduled tasks.");
+                Log.d(Constants.TAG, "Restarting scheduled tasks.");
                 mainActivity.userIsInteractingWithDevice = false;
                 webController.startScreenSaverSubscription();
+                webController.startCycleSecondarySubscription();
                 standbyController.startDimSubscription();
                 if (refreshController.deviceShouldBeReset)
                     refreshController.startShortRefreshSubscription();
@@ -120,6 +121,7 @@ public class SettingsController {
 
     public void stopScheduledTasks() {
         webController.stopScreenSaverSubscription();
+        webController.stopCycleSecondarySubscription();
         standbyController.stopDimSubscription();
         refreshController.stopShortRefreshSubscription();
     }

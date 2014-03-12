@@ -87,7 +87,7 @@ public class RefreshController {
                     deviceShouldBeReset = true;
             }
         };
-        return null;
+        return shortRefreshSubscriber;
     }
 
     public void stopShortRefreshSubscription() {

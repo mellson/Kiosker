@@ -2,6 +2,7 @@ package dk.itu.kiosker.web;
 
 import android.animation.Animator;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -28,10 +29,9 @@ public class NavigationLayout extends LinearLayout {
     private static final float NAVIGATION_HIDDEN_ALPHA = 0.0f;
     private final Button backButton;
     private final Button forwardButton;
-    private final Button homeButton;
     private final WebView webView;
     private final Observable<Long> navigationHideObservable = Observable.timer(Constants.NAVIGATION_ONSCREEN_TIME_SECONDS, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread());
-    private final int MINIMUM_HEIGHT = 50;
+    private final LinearLayout navigationControls;
     private Spinner titleSpinner;
     private boolean firstTimeHere = true;
     // if this is a sites web view and user is allowed to switch sites we should show the navigation ui immediately.
@@ -39,21 +39,23 @@ public class NavigationLayout extends LinearLayout {
     private String homeUrl;
     private Subscriber<Long> navigationHideSubscriber;
 
-    private ArrayList<String> siteTitles;
     private ArrayList<String> siteUrls;
 
     public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, ArrayList<String> sitesWebPages) {
         super(mainActivity);
         this.webView = webView;
+        this.setGravity(Gravity.CENTER_VERTICAL);
 
-        this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        this.setGravity(Gravity.CENTER);
-        this.setBackgroundColor(Color.BLACK);
+        LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        navigationControls = new LinearLayout(mainActivity);
+        navigationControls.setLayoutParams(params);
+        navigationControls.setOrientation(HORIZONTAL);
+        navigationControls.setBackgroundColor(Color.BLACK);
 
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        backButton = new Button(mainActivity);
-        backButton.setLayoutParams(params);
-        backButton.setText(mainActivity.getString(R.string.BackButton));
+        Typeface font = Typeface.createFromAsset(mainActivity.getAssets(), "fontawesome-webfont.ttf");
+        backButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        backButton.setTypeface(font);
+        backButton.setText(mainActivity.getString(R.string.icon_back));
         backButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,9 +64,9 @@ public class NavigationLayout extends LinearLayout {
             }
         });
 
-        forwardButton = new Button(mainActivity);
-        forwardButton.setLayoutParams(params);
-        forwardButton.setText(mainActivity.getString(R.string.ForwardButton));
+        forwardButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        forwardButton.setTypeface(font);
+        forwardButton.setText(mainActivity.getString(R.string.icon_forward));
         forwardButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,9 +75,9 @@ public class NavigationLayout extends LinearLayout {
             }
         });
 
-        homeButton = new Button(mainActivity);
-        homeButton.setLayoutParams(params);
-        homeButton.setText(mainActivity.getString(R.string.HomeButton));
+        Button homeButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        homeButton.setTypeface(font);
+        homeButton.setText(mainActivity.getString(R.string.icon_home));
         homeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,14 +87,14 @@ public class NavigationLayout extends LinearLayout {
             }
         });
 
-        this.addView(backButton);
-        this.addView(forwardButton);
-        this.addView(homeButton);
+        navigationControls.addView(backButton);
+        navigationControls.addView(forwardButton);
+        navigationControls.addView(homeButton);
 
         // Add the site selector if we are on the secondary panel and the user is allowed to change sites.
         allowSwitching = homeView ? false : Constants.getAllowSwitching(mainActivity);
         if (!homeView && allowSwitching) {
-            siteTitles = new ArrayList<>();
+            ArrayList<String> siteTitles = new ArrayList<>();
             siteUrls = new ArrayList<>();
 
             // Split the incoming sites array into titles and urls
@@ -104,7 +106,7 @@ public class NavigationLayout extends LinearLayout {
             }
 
             titleSpinner = new Spinner(mainActivity);
-            titleSpinner.setLayoutParams(params);
+            titleSpinner.setPadding(0,0,0,0);
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item, siteTitles);
             titleSpinner.setAdapter(spinnerArrayAdapter);
             titleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -118,18 +120,17 @@ public class NavigationLayout extends LinearLayout {
 
                 }
             });
-            this.addView(titleSpinner);
+            navigationControls.addView(titleSpinner);
         }
+        this.addView(navigationControls);
     }
 
     /**
      * Show navigation if we are not showing the home screen.
-     *
-     * @return true if we are not on the home screen.
      */
     public void hideNavigation() {
-        if (this.getAlpha() > 0)
-            animateView(this, true);
+        if (navigationControls.getAlpha() > 0)
+            animateView(navigationControls, true);
     }
 
     public void showNavigation() {
@@ -141,7 +142,7 @@ public class NavigationLayout extends LinearLayout {
         if (allowSwitching || !webView.getUrl().equals(homeUrl)) {
             backButton.setEnabled(webView.canGoBack());
             forwardButton.setEnabled(webView.canGoForward());
-            animateView(this, false);
+            animateView(navigationControls, false);
             if (navigationHideSubscriber != null && !navigationHideSubscriber.isUnsubscribed()) {
                 navigationHideSubscriber.unsubscribe();
                 navigationHideObservable.subscribe(getNavigationHideSubscriber());

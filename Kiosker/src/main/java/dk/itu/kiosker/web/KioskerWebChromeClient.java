@@ -17,12 +17,9 @@ public class KioskerWebChromeClient extends WebChromeClient {
 
     /**
      * Here we catch error messages, including js errors, from the chrome client.
-     *
-     * @param consoleMessage
-     * @return
      */
     @Override
-    public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+    public boolean onConsoleMessage(@SuppressWarnings("NullableProblems") ConsoleMessage consoleMessage) {
         if (consoleMessage.messageLevel().equals(ConsoleMessage.MessageLevel.ERROR))
             Log.d(Constants.TAG, consoleMessage.message()); // TODO: How should we handle javascript errors
         return false;

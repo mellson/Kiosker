@@ -3,11 +3,8 @@
 
     <string name="app_name">Kiosker</string>
     <string name="app_name_settings">Settings</string>
-    <string name="BackButton">Back</string>
-    <string name="HomeButton">Home</string>
-    <string name="ForwardButton">Forward</string>
-    <string name="title_activity_navigation">navigation</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
 
+    <string name="icon_back">&#xf060;</string>
+    <string name="icon_forward">&#xf061;</string>
+    <string name="icon_home">&#xf015;</string>
 </resources>

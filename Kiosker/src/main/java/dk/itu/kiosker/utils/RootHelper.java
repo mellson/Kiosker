@@ -27,9 +27,9 @@ public class RootHelper {
     }
 
     public ArrayList<String> executeCommand() {
-        String line = null;
-        ArrayList<String> fullResponse = new ArrayList<String>();
-        Process localProcess = null;
+        String line;
+        ArrayList<String> fullResponse = new ArrayList<>();
+        Process localProcess;
         try {
             localProcess = Runtime.getRuntime().exec(SHELL_CMD.check_su_binary.command);
         } catch (Exception e) {
@@ -52,7 +52,7 @@ public class RootHelper {
     public static enum SHELL_CMD {
         check_su_binary(new String[]{"/system/xbin/which", "su"});
 
-        String[] command;
+        final String[] command;
 
         SHELL_CMD(String[] command) {
             this.command = command;

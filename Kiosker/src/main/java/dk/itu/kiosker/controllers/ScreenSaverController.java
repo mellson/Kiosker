@@ -22,7 +22,7 @@ public class ScreenSaverController {
     private ArrayList<String> screenSaverWebPages;
     private Observable<Long> screenSaverObservable;
     private Subscriber<Long> screenSaverSubscriber;
-    private WebController webController;
+    private final WebController webController;
 
     public ScreenSaverController(MainActivity mainActivity, ArrayList<Subscriber> subscribers, WebController webController) {
         this.mainActivity = mainActivity;
@@ -104,6 +104,7 @@ public class ScreenSaverController {
                     unsubscribe();
             }
         };
+        subscribers.remove(screenSaverSubscriber);
 
         // Add to subscribers so we can cancel this later
         subscribers.add(screenSaverSubscriber);

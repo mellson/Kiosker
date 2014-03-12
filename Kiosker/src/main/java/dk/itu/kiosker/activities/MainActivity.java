@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
@@ -222,8 +223,8 @@ public class MainActivity extends Activity {
         settingsController.loadSafeSettings();
     }
 
-    public void addView(View view) {
-        mainLayout.addView(view);
+    public void addView(View view, float weight) {
+        mainLayout.addView(view, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, weight));
     }
 
     private void handleNavigationUI() {
