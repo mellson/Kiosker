@@ -39,9 +39,7 @@ public class NavigationLayout extends LinearLayout {
     private String homeUrl;
     private Subscriber<Long> navigationHideSubscriber;
 
-    private ArrayList<String> siteUrls;
-
-    public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, ArrayList<String> sitesWebPages) {
+    public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, final ArrayList<WebPage> sitesWebPages) {
         super(mainActivity);
         this.webView = webView;
         this.setGravity(Gravity.CENTER_VERTICAL);
@@ -95,14 +93,8 @@ public class NavigationLayout extends LinearLayout {
         allowSwitching = homeView ? false : Constants.getAllowSwitching(mainActivity);
         if (!homeView && allowSwitching) {
             ArrayList<String> siteTitles = new ArrayList<>();
-            siteUrls = new ArrayList<>();
-
-            // Split the incoming sites array into titles and urls
-            for (int i = 0; i < sitesWebPages.size(); i++) {
-                if (i % 2 == 0)
-                    siteUrls.add(sitesWebPages.get(i));
-                else
-                    siteTitles.add(sitesWebPages.get(i));
+            for (WebPage webPage : sitesWebPages) {
+                siteTitles.add(webPage.title);
             }
 
             titleSpinner = new Spinner(mainActivity);
@@ -112,7 +104,7 @@ public class NavigationLayout extends LinearLayout {
             titleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    webView.loadUrl(siteUrls.get(position));
+                    webView.loadUrl(sitesWebPages.get(position).url);
                 }
 
                 @Override

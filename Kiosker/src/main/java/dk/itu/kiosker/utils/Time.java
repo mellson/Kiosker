@@ -7,9 +7,8 @@ public class Time {
     private int hours;
     private int minutes;
 
-    public Time(Object time) {
-        String timeString = time.toString();
-        String[] splitTimeString = timeString.trim().replace(";", ".").replace(":", ".").replace(",", ".").split("\\.");
+    public Time(String time) {
+        String[] splitTimeString = time.trim().replace(";", ".").replace(":", ".").replace(",", ".").split("\\.");
         if (splitTimeString.length > 0) {
             hours = Integer.parseInt(splitTimeString[0]);
             hours = hours < 0 ? 0 : hours;

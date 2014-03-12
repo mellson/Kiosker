@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
+import dk.itu.kiosker.web.WebPage;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -19,7 +20,7 @@ public class ScreenSaverController {
     private final MainActivity mainActivity;
     private final ArrayList<Subscriber> subscribers;
     private int screenSaveLengthMins;
-    private ArrayList<String> screenSaverWebPages;
+    private ArrayList<WebPage> screenSaverWebPages;
     private Observable<Long> screenSaverObservable;
     private Subscriber<Long> screenSaverSubscriber;
     private final WebController webController;
@@ -34,7 +35,7 @@ public class ScreenSaverController {
         int screenSavePeriodMins = SettingsExtractor.getInteger(settings, "screenSavePeriodMins");
         if (screenSavePeriodMins > 0) {
             screenSaveLengthMins = SettingsExtractor.getInteger(settings, "screenSaveLengthMins");
-            screenSaverWebPages = SettingsExtractor.getStringArrayList(settings, "screensavers");
+            screenSaverWebPages = SettingsExtractor.getWebPages(settings, "screensavers");
             if (screenSaveLengthMins > 0) {
                 screenSaverObservable = Observable.timer(screenSavePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
                 screenSaverObservable.subscribe(getScreenSaverSubscriber());
@@ -88,7 +89,7 @@ public class ScreenSaverController {
                     mainActivity.currentlyScreenSaving = true;
 
                     Random rnd = new Random();
-                    int randomIndex = rnd.nextInt(screenSaverWebPages.size() / 2) * 2;
+                    int randomIndex = rnd.nextInt(screenSaverWebPages.size());
 
                     // Clean current view .
                     mainActivity.cleanUpMainView();

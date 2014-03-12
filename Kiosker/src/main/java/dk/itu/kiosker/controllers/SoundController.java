@@ -33,9 +33,9 @@ class SoundController {
         int volume = SettingsExtractor.getInteger(settings, "volume");
         int standardVolume = volume > 0 ? volume : 50;
         setVolume(standardVolume);
-        Double quietHoursStartTime = SettingsExtractor.getDouble(settings, "quietHoursStartTime");
-        Double quietHoursStopTime = SettingsExtractor.getDouble(settings, "quietHoursStopTime");
-        if (quietHoursStartTime >= 0 && quietHoursStopTime >= 0) {
+        String quietHoursStartTime = SettingsExtractor.getString(settings, "quietHoursStartTime");
+        String quietHoursStopTime = SettingsExtractor.getString(settings, "quietHoursStopTime");
+        if (!quietHoursStartTime.isEmpty() && !quietHoursStopTime.isEmpty()) {
             Time startTime = new Time(quietHoursStartTime);
 
             // Creating a simple observable we can define a task on.

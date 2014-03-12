@@ -20,25 +20,25 @@ import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
-import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
 import dk.itu.kiosker.web.NavigationLayout;
+import dk.itu.kiosker.web.WebPage;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 class WebController {
+    // Has our main web view (home) at index 0 and the sites at index 1
+    private final ArrayList<WebView> webViews;
     private final MainActivity mainActivity;
     private final int tapsToOpenSettings = 5;
     private int taps = tapsToOpenSettings;
-    // Has our main web view (home) at index 0 and the sites at index 1
-    private final ArrayList<WebView> webViews;
     private final ArrayList<Subscriber> subscribers;
     private final ArrayList<NavigationLayout> navigationLayouts;
     private Date lastTap;
-    private ArrayList<String> homeWebPages;
-    private ArrayList<String> sitesWebPages;
+    private ArrayList<WebPage> homeWebPages;
+    private ArrayList<WebPage> sitesWebPages;
     private int reloadPeriodMins;
     private int errorReloadMins;
     private boolean fullScreenMode;
@@ -64,8 +64,8 @@ class WebController {
         int layout = (tempLayout >= 0) ? tempLayout : 0;
         fullScreenMode = layout == 0;
 
-        homeWebPages = SettingsExtractor.getStringArrayList(settings, "home");
-        sitesWebPages = SettingsExtractor.getStringArrayList(settings, "sites");
+        homeWebPages = SettingsExtractor.getWebPages(settings, "home");
+        sitesWebPages = SettingsExtractor.getWebPages(settings, "sites");
 
         handleWebViewSetup(layout);
         handleAutoCycleSecondary(settings);
@@ -75,7 +75,7 @@ class WebController {
     }
 
     private void handleWebViewSetup(int layout) {
-        if (homeWebPages.size() > 1) {
+        if (!homeWebPages.isEmpty()) {
             float weight = WebHelper.layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
             if (weight < 1.0 && sitesWebPages.isEmpty())
@@ -84,7 +84,7 @@ class WebController {
                 setupWebView(true, homeWebPages.get(0), weight, true);
         }
 
-        if (sitesWebPages.size() > 1 && !fullScreenMode) {
+        if (!sitesWebPages.isEmpty() && !fullScreenMode) {
             float weight = WebHelper.layoutTranslator(layout, false);
             if (weight > 0.0)
                 setupWebView(false, sitesWebPages.get(0), weight, true);
@@ -129,8 +129,8 @@ class WebController {
             public void onNext(Long l) {
                 if (webViews.size() > 1) {
                     Log.d(Constants.TAG, "Cycling secondary screen.");
-                    secondaryCycleIndex = (secondaryCycleIndex += 2) % sitesWebPages.size();
-                    String url = sitesWebPages.get(secondaryCycleIndex);
+                    secondaryCycleIndex = secondaryCycleIndex++ % sitesWebPages.size();
+                    String url = sitesWebPages.get(secondaryCycleIndex).url;
                     webViews.get(1).loadUrl(url);
                 } else {
                     unsubscribe();
@@ -146,14 +146,14 @@ class WebController {
     /**
      * Setup the WebViews we need.
      *  @param homeView is this the main view, if so we don't allow the user to change the url.
-     * @param homeUrl  the main url for this web view.
+     * @param webPage  the main url for this web view.
      * @param weight   how much screen estate should this main take?
      * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
-    protected void setupWebView(boolean homeView, String homeUrl, float weight, boolean allowReloading) {
+    protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading) {
         WebView webView = getWebView();
         webViews.add(webView);
-        webView.loadUrl(homeUrl);
+        webView.loadUrl(webPage.url);
         addTapToSettings(webView);
         if (reloadPeriodMins > 0 && allowReloading) {
             Subscriber<Long> reloadSubscriber = reloadSubscriber(webView);
@@ -194,7 +194,12 @@ class WebController {
         WebView.setWebContentsDebuggingEnabled(true);
         final WebView webView = new WebView(mainActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
-        webView.setWebChromeClient(new KioskerWebChromeClient());
+
+//        webView.setWebChromeClient(new KioskerWebChromeClient()); // TODO - Maybe this is not needed since chromium is the engine for web view since Kit Kat.
+
+        // Disable hardware acceleration because of rendering bug in Kit Kat. Sometimes it would throw "W/AwContents﹕ nativeOnDraw failed; clearing to background color." errors.
+//        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setBuiltInZoomControls(true);
@@ -283,7 +288,7 @@ class WebController {
                 if (!webViews.isEmpty() && !homeWebPages.isEmpty())
                     for (int i = 0; i < webViews.size(); i++) {
                         if (i == 0)
-                            webViews.get(i).loadUrl(homeWebPages.get(0));
+                            webViews.get(i).loadUrl(homeWebPages.get(0).url);
                         else
                             webViews.get(i).reload();
                     }

@@ -43,8 +43,8 @@ public class MainActivity extends Activity {
      * It also decides if we do an initial setup or a refresh of settings.
      */
     private void setupApplication() {
-        settingsController = new SettingsController(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
+        settingsController = new SettingsController(this);
         statusUpdater = new StatusUpdater(this);
         settingsController.keepScreenOn();
         if (Constants.getInitialRun(this))
