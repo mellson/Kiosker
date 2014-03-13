@@ -28,14 +28,14 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-class WebController {
+public class WebController {
     // Has our main web view (home) at index 0 and the sites at index 1
-    private final ArrayList<WebView> webViews;
+    private ArrayList<WebView> webViews;
     private final MainActivity mainActivity;
-    private final int tapsToOpenSettings = 5;
+    public static final int tapsToOpenSettings = 5;
     private int taps = tapsToOpenSettings;
     private final ArrayList<Subscriber> subscribers;
-    private final ArrayList<NavigationLayout> navigationLayouts;
+    private ArrayList<NavigationLayout> navigationLayouts;
     private Date lastTap;
     private ArrayList<WebPage> homeWebPages;
     private ArrayList<WebPage> sitesWebPages;
@@ -238,6 +238,7 @@ class WebController {
                             i.putExtra(Constants.KIOSKER_ALLOW_HOME_ID, Constants.getAllowHome(mainActivity));
                             i.putExtra(Constants.KIOSKER_PASSWORD_HASH_ID, Constants.getPasswordHash(mainActivity));
                             i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID, Constants.getMasterPasswordHash(mainActivity));
+                            i.putExtra(Constants.KIOSKER_PASSWORD_SALT_ID, Constants.getPasswordSalt(mainActivity));
                             mainActivity.startActivityForResult(i, 0);
                         }
                         taps--;
@@ -267,14 +268,18 @@ class WebController {
         for (NavigationLayout navigationLayout : navigationLayouts) {
             navigationLayout.removeAllViews();
         }
-        clearArray(navigationLayouts);
-        clearArray(webViews);
-        clearArray(homeWebPages);
-        clearArray(sitesWebPages);
+        navigationLayouts = resetArray(navigationLayouts);
+        webViews = resetArray(webViews);
+        homeWebPages = resetArray(homeWebPages);
+        sitesWebPages = resetArray(sitesWebPages);
     }
 
-    private void clearArray(ArrayList array) {
-        if (array != null) array.clear();
+    private ArrayList resetArray(ArrayList array) {
+        if (array != null) {
+            array.clear();
+            array = null;
+        }
+        return new ArrayList<>();
     }
 
     /**

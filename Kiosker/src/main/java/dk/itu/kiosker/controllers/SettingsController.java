@@ -45,6 +45,7 @@ public class SettingsController {
 
         Constants.setPasswordHash(mainActivity, SettingsExtractor.getString(settings, "passwordHash"));
         Constants.setMasterPasswordHash(mainActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
+        Constants.setPasswordSalt(mainActivity, SettingsExtractor.getString(settings, "passwordSalt"));
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);

@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +17,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Formatter;
+
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.models.Constants;
 
@@ -25,6 +29,7 @@ import dk.itu.kiosker.models.Constants;
 public class SettingsActivity extends Activity {
     private String PASSWORD_HASH;
     private String MASTER_PASSWORD_HASH;
+    private String PASSWORD_SALT;
     private Boolean refreshSettings = false;
     private Boolean resetDevice = false;
     private Boolean allowHome = false;
@@ -37,6 +42,8 @@ public class SettingsActivity extends Activity {
 
         PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_HASH_ID);
         MASTER_PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
+        PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_SALT_ID);
+
         if ((PASSWORD_HASH != null && !PASSWORD_HASH.isEmpty())
                 || (MASTER_PASSWORD_HASH != null && !MASTER_PASSWORD_HASH.isEmpty()))
             showPasswordDialog();
@@ -163,14 +170,14 @@ public class SettingsActivity extends Activity {
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         Editable inputValue = input[0].getText();
-                        String md5 = "";
+                        String encoded = "";
                         if (inputValue != null)
-                            md5 = MD5(inputValue.toString());
-                        if (md5.equals(PASSWORD_HASH) || md5.equals(MASTER_PASSWORD_HASH)) {
+                            encoded = encryptPassword(encryptPassword(PASSWORD_SALT + inputValue.toString()));
+                        if (encoded.equals(PASSWORD_HASH) || encoded.equals(MASTER_PASSWORD_HASH)) {
                             Toast.makeText(SettingsActivity.this, "Correct password!", Toast.LENGTH_SHORT).show();
                             setupSettingsView();
                             okToEnter[0] = true;
-                        } else if (!md5.equals(PASSWORD_HASH) || !md5.equals(MASTER_PASSWORD_HASH)) {
+                        } else if (!encoded.equals(PASSWORD_HASH) || !encoded.equals(MASTER_PASSWORD_HASH)) {
                             hasEnteredPassword[0] = true;
                         }
                     }
@@ -180,6 +187,39 @@ public class SettingsActivity extends Activity {
                 finish();
             }
         }).show();
+    }
+
+    private static String encryptPassword(String password)
+    {
+        String sha1 = "";
+        try
+        {
+            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+            crypt.reset();
+            crypt.update(password.getBytes("UTF-8"));
+            sha1 = byteToHex(crypt.digest());
+        }
+        catch(NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+        }
+        catch(UnsupportedEncodingException e)
+        {
+            e.printStackTrace();
+        }
+        return sha1;
+    }
+
+    private static String byteToHex(final byte[] hash)
+    {
+        Formatter formatter = new Formatter();
+        for (byte b : hash)
+        {
+            formatter.format("%02x", b);
+        }
+        String result = formatter.toString();
+        formatter.close();
+        return result;
     }
 
     @Override
@@ -241,20 +281,5 @@ public class SettingsActivity extends Activity {
     public void hideSoftKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
-    }
-
-    public String MD5(String md5) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] array = md.digest(md5.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte anArray : array) {
-                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString();
-        } catch (java.security.NoSuchAlgorithmException e) {
-            Log.e(Constants.TAG, "Error while trying to create MD5 value.", e);
-        }
-        return null;
     }
 }
