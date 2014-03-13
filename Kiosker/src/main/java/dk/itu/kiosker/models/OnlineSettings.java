@@ -41,7 +41,7 @@ public class OnlineSettings {
                 mainActivity.updateSubStatus("Finished downloading base settings.");
                 String device_id = Constants.getDeviceId(mainActivity);
                 if (!device_id.isEmpty())
-                    JsonFetcher.getObservableMap(Constants.BASE_SETTINGS + "_" + device_id + Constants.FILE_ENDING)
+                    JsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(deviceSpecificSettingsObserver(mainActivity));
                 else

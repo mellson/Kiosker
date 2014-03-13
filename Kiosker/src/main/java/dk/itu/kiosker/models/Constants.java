@@ -12,7 +12,7 @@ public class Constants {
     public static final long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
     public static final long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
     public static final String TAG = "Kiosker";
-    public static final String BASE_SETTINGS = "kiosker_settings";
+    public static final String BASE_SETTINGS = "base";
     public static final String JSON_BASE_URL_ID = "json_base_url";
     public static final String FILE_ENDING = ".json";
     public static final String KIOSKER_REFRESH_SETTINGS_ID = "refreshSettings";
