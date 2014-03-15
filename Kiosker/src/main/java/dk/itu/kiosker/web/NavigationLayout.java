@@ -147,7 +147,6 @@ public class NavigationLayout extends LinearLayout {
         navigationHideSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
-
             }
 
             @Override

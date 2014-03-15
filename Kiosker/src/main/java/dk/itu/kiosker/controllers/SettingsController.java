@@ -39,10 +39,6 @@ public class SettingsController {
     }
 
     public void handleSettings(LinkedHashMap settings) {
-        // Stop all the scheduled tasks before starting new ones.
-        for (Subscriber s : subscribers)
-            s.unsubscribe();
-
         Constants.setPasswordHash(mainActivity, SettingsExtractor.getString(settings, "passwordHash"));
         Constants.setMasterPasswordHash(mainActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
         Constants.setPasswordSalt(mainActivity, SettingsExtractor.getString(settings, "passwordSalt"));
@@ -53,12 +49,8 @@ public class SettingsController {
         hardwareController.handleHardwareSettings(settings);
 
         // Save these settings as the safe defaults.
-        if (!settings.isEmpty()) {
+        if (!settings.isEmpty())
             LocalSettings.setSafeJson(mainActivity, settings);
-
-            // Also set that this is no longer the initial run of the application
-            Constants.setInitialRun(mainActivity, false);
-        }
 
         // Show our settings in the settings activity.
         Constants.settingsText = settings.toString();
@@ -89,6 +81,7 @@ public class SettingsController {
         delayedScheduledTasksSubscription = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
+                subscribers.remove(delayedScheduledTasksSubscription);
             }
 
             @Override
@@ -128,6 +121,7 @@ public class SettingsController {
     }
 
     public void unsubscribeScheduledTasks() {
+        // If we are in standby mode make sure that we don't unsubscribe our wake subscriber.
         if (mainActivity.currentlyInStandbyPeriod)
             subscribers.remove(mainActivity.wakeSubscriber);
         for (Subscriber s : subscribers)

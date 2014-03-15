@@ -30,7 +30,6 @@ public class SettingsActivity extends Activity {
     private String PASSWORD_HASH;
     private String MASTER_PASSWORD_HASH;
     private String PASSWORD_SALT;
-    private Boolean refreshSettings = false;
     private Boolean resetDevice = false;
     private Boolean allowHome = false;
 
@@ -77,15 +76,6 @@ public class SettingsActivity extends Activity {
             }
         });
 
-        Button refreshSettingsButton = (Button) findViewById(R.id.refreshSettingsButton);
-        refreshSettingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                refreshSettings = true;
-                finish();
-            }
-        });
-
         Button resetDeviceButton = (Button) findViewById(R.id.resetDeviceButton);
         resetDeviceButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,7 +108,6 @@ public class SettingsActivity extends Activity {
         saveDeviceIdButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshSettings = true;
                 finish();
             }
         });
@@ -131,7 +120,6 @@ public class SettingsActivity extends Activity {
         saveBaseUrlButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshSettings = true;
                 finish();
             }
         });
@@ -226,9 +214,6 @@ public class SettingsActivity extends Activity {
     public void finish() {
         // Prepare data intent
         Intent data = new Intent();
-
-        // Should the device be refreshed?
-        data.putExtra(Constants.KIOSKER_REFRESH_SETTINGS_ID, refreshSettings);
 
         // Should the device be reset?
         data.putExtra(Constants.KIOSKER_RESET_DEVICE_ID, resetDevice);

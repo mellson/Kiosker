@@ -61,6 +61,7 @@ public class ScreenSaverController {
         screenSaverSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
+                subscribers.remove(screenSaverSubscriber);
                 Observable.timer(screenSaveLengthMins, TimeUnit.MINUTES)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Long>() {

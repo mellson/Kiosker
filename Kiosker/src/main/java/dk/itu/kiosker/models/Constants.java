@@ -9,22 +9,21 @@ import dk.itu.kiosker.utils.RootHelper;
 
 // Constants and other device specific settings.
 public class Constants {
-    public static final long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
-    public static final long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
-    public static final String TAG = "Kiosker";
-    public static final String BASE_SETTINGS = "base";
-    public static final String JSON_BASE_URL_ID = "json_base_url";
-    public static final String FILE_ENDING = ".json";
-    public static final String KIOSKER_REFRESH_SETTINGS_ID = "refreshSettings";
-    public static final String KIOSKER_RESET_DEVICE_ID = "resetDevice";
-    public static final String SAFE_JSON = "kiosker_safe_json";
-    public static final String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
-    public static final String KIOSKER_DEVICE_ID = "kiosker_device_id";
-    public static final String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
-    public static final String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
-    public static final String KIOSKER_PASSWORD_SALT_ID = "kiosker_password_salt_id";
-    private static final String INITIAL_RUN = "initial_run_of_application";
-    private static final String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
+    public static long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
+    public static long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
+    public static String TAG = "Kiosker";
+    public static String BASE_SETTINGS = "base";
+    public static String JSON_BASE_URL_ID = "json_base_url";
+    public static String FILE_ENDING = ".json";
+    public static String KIOSKER_RESET_DEVICE_ID = "resetDevice";
+    public static String SAFE_JSON = "kiosker_safe_json";
+    public static String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
+    public static String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    public static String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
+    public static String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
+    public static String KIOSKER_PASSWORD_SALT_ID = "kiosker_password_salt_id";
+    private static String INITIAL_RUN = "initial_run_of_application";
+    private static String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
     public static String settingsText = "This is a dummy settings text";
 

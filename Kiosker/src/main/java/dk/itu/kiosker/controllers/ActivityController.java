@@ -22,7 +22,7 @@ public class ActivityController {
      */
     public static void handleMainActivityGoingAway(final MainActivity mainActivity) { // TODO er det her den bruger meget strøm
         if (!showingAllowedActivity(mainActivity))
-            getCountdownString().subscribe(new Subscriber<String>() {
+            getCountdownString().delay(1, TimeUnit.SECONDS).subscribe(new Subscriber<String>() {
                 @Override
                 public void onCompleted() {
                     if (!showingAllowedActivity(mainActivity))

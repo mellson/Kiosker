@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.InitialSetup;
 import dk.itu.kiosker.activities.MainActivity;
 import dk.itu.kiosker.utils.JsonFetcher;
+import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -21,7 +22,8 @@ public class OnlineSettings {
         Constants.JSON_BASE_URL = Constants.getJsonBaseUrl(mainActivity);
 
         if (!Constants.JSON_BASE_URL.isEmpty()) {
-            JsonFetcher.getObservableMap(Constants.BASE_SETTINGS + Constants.FILE_ENDING)
+            JsonFetcher fetcher = new JsonFetcher();
+            fetcher.getObservableMap(Constants.BASE_SETTINGS + Constants.FILE_ENDING)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(baseSettingsObserver(mainActivity));
         } else {
@@ -40,31 +42,38 @@ public class OnlineSettings {
                 Log.d(Constants.TAG, "Finished getting base json settings.");
                 mainActivity.updateSubStatus("Finished downloading base settings.");
                 String device_id = Constants.getDeviceId(mainActivity);
-                if (!device_id.isEmpty())
-                    JsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)
+                if (!device_id.isEmpty()) {
+                    JsonFetcher jsonFetcher = new JsonFetcher();
+                    jsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(deviceSpecificSettingsObserver(mainActivity));
+                }
                 else
                     mainActivity.handleSettings(currentSettings);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                Log.e(Constants.TAG, "Error while getting base json settings.", throwable);
+                RetrofitError error = (RetrofitError) throwable;
+                String errorReason = error.getResponse().getReason();
+
+                Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", error);
+
 
                 mainActivity.updateMainStatus("Error");
                 if (Constants.hasSafeSettings(mainActivity)) {
-                    mainActivity.updateSubStatus("while getting base json settings, trying safe settings.");
+                    mainActivity.updateSubStatus(errorReason + ", trying safe settings.");
 
                     // Of there was an error getting the json we can load or last successful json
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                         @Override
                         public void call(Long aLong) {
+                            mainActivity.cleanUpMainView();
                             mainActivity.loadSafeSettings();
                         }
                     });
                 } else {
-                    mainActivity.updateSubStatus("while getting base json settings, please retry.");
+                    mainActivity.updateSubStatus(errorReason + ", please retry.");
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                         @Override
                         public void call(Long aLong) {
@@ -94,8 +103,10 @@ public class OnlineSettings {
 
             @Override
             public void onError(Throwable throwable) {
-                Log.e(Constants.TAG, "Error while getting device specific json settings.", throwable);
-                Toast.makeText(mainActivity, "Error while getting device specific json settings.", Toast.LENGTH_LONG).show();
+                RetrofitError error = (RetrofitError) throwable;
+                String errorReason = error.getResponse().getReason();
+                Log.e(Constants.TAG, "Error while getting device specific json settings because " + errorReason + ".", throwable);
+                Toast.makeText(mainActivity, "Error device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
                 mainActivity.handleSettings(currentSettings);
             }
 

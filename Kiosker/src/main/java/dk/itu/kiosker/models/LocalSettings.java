@@ -26,7 +26,8 @@ public class LocalSettings {
     public static void setSafeJson(MainActivity mainActivity, LinkedHashMap settings) {
         String json = null;
         try {
-            json = JsonFetcher.mapper.writeValueAsString(settings);
+            JsonFetcher jsonFetcher = new JsonFetcher();
+            json = jsonFetcher.mapper.writeValueAsString(settings);
         } catch (JsonProcessingException e) {
             Log.e(Constants.TAG, "Error while saving safe settings.", e);
         }
@@ -40,7 +41,8 @@ public class LocalSettings {
         String restoredJson = prefs.getString(Constants.SAFE_JSON, null);
         if (restoredJson != null) {
             try {
-                return JsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
+                JsonFetcher jsonFetcher = new JsonFetcher();
+                return jsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
             } catch (IOException e) {
                 Log.e(Constants.TAG, "Error while loading safe settings.", e);
             }

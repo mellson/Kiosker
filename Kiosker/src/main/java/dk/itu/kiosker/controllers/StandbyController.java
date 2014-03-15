@@ -131,6 +131,7 @@ class StandbyController {
         idleDimSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
+                subscribers.remove(idleDimSubscriber);
             }
 
             @Override

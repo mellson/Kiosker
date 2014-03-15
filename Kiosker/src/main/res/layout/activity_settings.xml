@@ -24,7 +24,7 @@
             android:id="@+id/closeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Close Settings" />
+            android:text="Close and Refresh" />
 
         <Button
             android:id="@+id/logButton"
@@ -43,13 +43,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Reset Device" />
-
-
-        <Button
-            android:id="@+id/refreshSettingsButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Refresh Device" />
 
         <LinearLayout
             android:layout_width="wrap_content"

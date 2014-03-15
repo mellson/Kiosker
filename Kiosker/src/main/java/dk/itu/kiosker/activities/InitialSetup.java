@@ -21,6 +21,7 @@ public class InitialSetup {
      * This initial run can be triggered by resetting the device.
      */
     public static void start(final MainActivity mainActivity) {
+        Constants.setInitialRun(mainActivity, true);
         mainActivity.updateMainStatus("Initial Run");
         mainActivity.updateSubStatus("Please set the base url.");
         final EditText et = new EditText(mainActivity);
@@ -44,6 +45,7 @@ public class InitialSetup {
                     InputMethodManager imm = (InputMethodManager) mainActivity.getSystemService(
                             Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
+                    Constants.setInitialRun(mainActivity, false);
                     mainActivity.refreshDevice();
                     return true;
                 }

@@ -118,6 +118,7 @@ public class WebController {
         secondaryCycleSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
+                subscribers.remove(secondaryCycleSubscriber);
             }
 
             @Override
@@ -182,8 +183,6 @@ public class WebController {
         frameLayout.addView(navigationLayout);
         mainActivity.addView(frameLayout, weight);
     }
-
-
 
     /**
      * Returns a WebView with a specified weight.
@@ -311,7 +310,6 @@ public class WebController {
         return new Subscriber<Long>() {
             @Override
             public void onCompleted() {
-
             }
 
             @Override

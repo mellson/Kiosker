@@ -83,6 +83,7 @@ public class RefreshController {
             public void onNext(Long aLong) {
                 if (!mainActivity.userIsInteractingWithDevice) {
                     deviceShouldBeReset = false;
+                    shortRefreshSubscriber.unsubscribe();
                     mainActivity.refreshDevice();
                 } else
                     deviceShouldBeReset = true;

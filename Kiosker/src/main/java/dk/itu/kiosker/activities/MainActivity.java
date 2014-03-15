@@ -17,10 +17,7 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
-import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 
 public class MainActivity extends Activity {
     public Boolean showingSettings = false;
@@ -29,7 +26,7 @@ public class MainActivity extends Activity {
     public boolean userIsInteractingWithDevice;
     public Subscriber<Long> wakeSubscriber;
     public LinearLayout mainLayout;
-    private SettingsController settingsController;
+    public SettingsController settingsController;
     private StatusUpdater statusUpdater;
 
     //region Create methods.
@@ -55,20 +52,25 @@ public class MainActivity extends Activity {
             settingsController.startLongRefreshSubscription();
     }
 
-    public void startLongRefreshSubscription() {
-        settingsController.startLongRefreshSubscription();
-    }
-
     /**
      * Clears the current view and downloads settings again.
      */
     public void refreshDevice() {
+        if (Constants.getInitialRun(this)) return;
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
         settingsController.unsubscribeScheduledTasks();
         statusUpdater.updateMainStatus("Downloading settings");
         statusUpdater.updateSubStatus("Starting download.");
         OnlineSettings.getSettings(this);
+    }
+
+    /**
+     * Removes all views added to the main layout and resets all web controllers.
+     */
+    public void cleanUpMainView() {
+        mainLayout.removeAllViews();
+        settingsController.clearWebViews();
     }
     //endregion
 
@@ -79,40 +81,31 @@ public class MainActivity extends Activity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(Constants.TAG, "onActivity result");
         String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
         Constants.setDeviceId(this, deviceId);
 
         String baseUrl = data.getStringExtra(Constants.JSON_BASE_URL_ID);
         Constants.setJsonBaseUrl(this, baseUrl);
 
-        Log.d(Constants.TAG, "onActivity result");
-
         Boolean resetDevice = data.getBooleanExtra(Constants.KIOSKER_RESET_DEVICE_ID, false);
         if (resetDevice) {
-            Constants.setInitialRun(this, true);
             LocalSettings.removeSafeSettings(this);
             cleanUpMainView();
             InitialSetup.start(this);
+            return;
         }
-
-        Boolean refreshDevice = data.getBooleanExtra(Constants.KIOSKER_REFRESH_SETTINGS_ID, false);
-        if (refreshDevice)
-            Observable.from(1).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Integer>() {
-                @Override
-                public void call(Integer integer) {
-                    refreshDevice();
-                }
-            });
 
         Boolean allowHome = data.getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
         if (allowHome != Constants.getAllowHome(this)) {
             Constants.setAllowHome(this, allowHome);
-            if (!allowHome)
+            if (!allowHome) {
                 hideNavigationUI();
-            else
+            }
+            else {
                 showNavigationUI();
+            }
         }
-
         showingSettings = false;
     }
     //endregion
@@ -170,14 +163,6 @@ public class MainActivity extends Activity {
     //endregion
 
     //region Helper methods.
-
-    /**
-     * Removes and invalidates all the views we have added to our main layout programmatically.
-     */
-    public void cleanUpMainView() {
-        mainLayout.removeAllViews();
-        settingsController.clearWebViews();
-    }
 
     /**
      * Enable the full screen immersive mode introduced in kit kat.
