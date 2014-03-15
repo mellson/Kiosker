@@ -341,7 +341,8 @@ public class WebController {
     }
 
     public void startCycleSecondarySubscription() {
-        secondaryCycleObservable.subscribe(getCycleSecondarySubscriber());
+        if (secondaryCycleObservable != null)
+            secondaryCycleObservable.subscribe(getCycleSecondarySubscriber());
     }
 
     public void stopCycleSecondarySubscription() {

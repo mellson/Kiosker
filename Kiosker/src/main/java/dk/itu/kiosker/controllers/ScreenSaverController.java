@@ -51,6 +51,7 @@ public class ScreenSaverController {
 
     public void stopScreenSaverSubscription() {
         screenSaverSubscriber.unsubscribe();
+        subscribers.remove(screenSaverSubscriber);
         if (mainActivity.currentlyScreenSaving) {
             mainActivity.currentlyScreenSaving = false;
             mainActivity.refreshDevice();
@@ -101,12 +102,13 @@ public class ScreenSaverController {
                     // Run the screen saver at max brightness
                     StandbyController.unDimDevice(mainActivity);
 
-                    Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex + 1)));
-                } else
+                    Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex).title));
+                } else {
                     unsubscribe();
+                    subscribers.remove(this);
+                }
             }
         };
-        subscribers.remove(screenSaverSubscriber);
 
         // Add to subscribers so we can cancel this later
         subscribers.add(screenSaverSubscriber);
