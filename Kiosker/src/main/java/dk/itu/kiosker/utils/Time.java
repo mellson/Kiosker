@@ -50,6 +50,10 @@ public class Time {
         Date now = new Date();
         Calendar cal1 = getDateFromTime(t1.hours, t1.minutes);
         Calendar cal2 = getDateFromTime(t2.hours, t2.minutes);
+        // If t1 happens today and it's hour is higher than t2's hours.
+        // Then t2 must be tomorrow and we need to add a day to cal2.
+        if (t1.hours >= t2.hours)
+            cal2.set(Calendar.DATE, cal2.get(Calendar.DATE) + 1);
         Boolean betweenTimes = cal1.getTimeInMillis() <= now.getTime();
         betweenTimes &= cal2.getTimeInMillis() >= now.getTime();
         return betweenTimes;
