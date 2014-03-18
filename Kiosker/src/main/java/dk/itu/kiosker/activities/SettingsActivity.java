@@ -30,6 +30,7 @@ public class SettingsActivity extends Activity {
     private String PASSWORD_HASH;
     private String MASTER_PASSWORD_HASH;
     private String PASSWORD_SALT;
+    private String MASTER_PASSWORD_SALT;
     private Boolean resetDevice = false;
     private Boolean allowHome = false;
 
@@ -42,6 +43,8 @@ public class SettingsActivity extends Activity {
         PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_HASH_ID);
         MASTER_PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
         PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_SALT_ID);
+        MASTER_PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID);
+
 
         if ((PASSWORD_HASH != null && !PASSWORD_HASH.isEmpty())
                 || (MASTER_PASSWORD_HASH != null && !MASTER_PASSWORD_HASH.isEmpty()))
@@ -158,14 +161,17 @@ public class SettingsActivity extends Activity {
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         Editable inputValue = input[0].getText();
-                        String encoded = "";
-                        if (inputValue != null)
-                            encoded = encryptPassword(encryptPassword(PASSWORD_SALT + inputValue.toString()));
-                        if (encoded.equals(PASSWORD_HASH) || encoded.equals(MASTER_PASSWORD_HASH)) {
+                        String encodedPassword = "";
+                        String encodedMasterPassword = "";
+                        if (inputValue != null) {
+                            encodedPassword = encryptPassword(encryptPassword(PASSWORD_SALT + inputValue.toString()));
+                            encodedMasterPassword = encryptPassword(encryptPassword(MASTER_PASSWORD_SALT + inputValue.toString()));
+                        }
+                        if (encodedPassword.equals(PASSWORD_HASH) || encodedMasterPassword.equals(MASTER_PASSWORD_HASH)) {
                             Toast.makeText(SettingsActivity.this, "Correct password!", Toast.LENGTH_SHORT).show();
                             setupSettingsView();
                             okToEnter[0] = true;
-                        } else if (!encoded.equals(PASSWORD_HASH) || !encoded.equals(MASTER_PASSWORD_HASH)) {
+                        } else if (!encodedPassword.equals(PASSWORD_HASH) || !encodedMasterPassword.equals(MASTER_PASSWORD_HASH)) {
                             hasEnteredPassword[0] = true;
                         }
                     }

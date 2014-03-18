@@ -238,6 +238,7 @@ public class WebController {
                             i.putExtra(Constants.KIOSKER_PASSWORD_HASH_ID, Constants.getPasswordHash(mainActivity));
                             i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID, Constants.getMasterPasswordHash(mainActivity));
                             i.putExtra(Constants.KIOSKER_PASSWORD_SALT_ID, Constants.getPasswordSalt(mainActivity));
+                            i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID, Constants.getMasterPasswordSalt(mainActivity));
                             mainActivity.startActivityForResult(i, 0);
                         }
                         taps--;

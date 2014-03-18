@@ -22,6 +22,7 @@ public class Constants {
     public static String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
     public static String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
     public static String KIOSKER_PASSWORD_SALT_ID = "kiosker_password_salt_id";
+    public static String KIOSKER_MASTER_PASSWORD_SALT_ID = "kiosker_master_password_salt_id";
     private static String INITIAL_RUN = "initial_run_of_application";
     private static String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
@@ -132,5 +133,16 @@ public class Constants {
     public static String getPasswordSalt(MainActivity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_PASSWORD_SALT_ID, "");
+    }
+
+    public static void setMasterPasswordSalt(MainActivity activity, String masterPasswordSalt) {
+        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_MASTER_PASSWORD_SALT_ID, masterPasswordSalt);
+        editor.commit();
+    }
+
+    public static String getMasterPasswordSalt(MainActivity activity) {
+        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_MASTER_PASSWORD_SALT_ID, "");
     }
 }
