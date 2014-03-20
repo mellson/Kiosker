@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import java.util.LinkedHashMap;
+import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.ActivityController;
@@ -18,6 +19,7 @@ import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.IntentHelper;
+import rx.Observable;
 import rx.Subscriber;
 
 public class KioskerActivity extends Activity {
@@ -28,6 +30,7 @@ public class KioskerActivity extends Activity {
     public LinearLayout mainLayout;
     public SettingsController settingsController;
     private StatusUpdater statusUpdater;
+    private Subscriber<Long> noInternetSubscriber;
 
     //region Create methods.
     @Override
@@ -61,10 +64,26 @@ public class KioskerActivity extends Activity {
         if (Constants.getInitialRun(this)) return;
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
+        // Check if we have started a subscriber for auto retrying internet connectivity.
+        if (noInternetSubscriber != null && !noInternetSubscriber.isUnsubscribed())
+            noInternetSubscriber.unsubscribe();
         settingsController.unsubscribeScheduledTasks();
         if (!Constants.isNetworkAvailable(this)) {
             statusUpdater.updateMainStatus("No internet");
-            statusUpdater.updateSubStatus("Please refresh from settings.");
+            statusUpdater.updateSubStatus("Please refresh from settings. Auto retry in 2 mins.");
+            noInternetSubscriber = new Subscriber<Long>() {
+                @Override
+                public void onCompleted() {}
+                @Override
+                public void onError(Throwable e) {
+                    Log.e(Constants.TAG, "Error while retrying internet connection.", e);
+                }
+                @Override
+                public void onNext(Long aLong) {
+                    refreshDevice();
+                }
+            };
+            Observable.timer(2, TimeUnit.MINUTES).subscribe(noInternetSubscriber);
             createSecretMenuButton();
         } else {
             statusUpdater.updateMainStatus("Downloading settings");
