@@ -54,10 +54,18 @@ public class OnlineSettings {
 
             @Override
             public void onError(Throwable throwable) {
-                RetrofitError error = (RetrofitError) throwable;
-                String errorReason = error.getResponse().getReason();
+                RetrofitError error = null;
+                String errorReason = "Unknown parse error.";
+                if (throwable != null) {
+                    error = (RetrofitError) throwable;
+                    if (error.getResponse() != null && error.getResponse().getReason() != null)
+                        errorReason = error.getResponse().getReason();
+                }
 
-                Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", error);
+                if (error != null)
+                    Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", error);
+                else
+                    Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", throwable);
 
 
                 kioskerActivity.updateMainStatus("Error");
