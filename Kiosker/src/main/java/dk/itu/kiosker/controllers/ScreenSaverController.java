@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.web.WebPage;
@@ -17,7 +17,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class ScreenSaverController {
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     private final ArrayList<Subscriber> subscribers;
     private int screenSaveLengthMins;
     private ArrayList<WebPage> screenSaverWebPages;
@@ -25,8 +25,8 @@ public class ScreenSaverController {
     private Subscriber<Long> screenSaverSubscriber;
     private final WebController webController;
 
-    public ScreenSaverController(MainActivity mainActivity, ArrayList<Subscriber> subscribers, WebController webController) {
-        this.mainActivity = mainActivity;
+    public ScreenSaverController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers, WebController webController) {
+        this.kioskerActivity = kioskerActivity;
         this.subscribers = subscribers;
         this.webController = webController;
     }
@@ -45,16 +45,18 @@ public class ScreenSaverController {
 
     public void startScreenSaverSubscription() {
         // Restart the idle time out if we are not in the standby period.
-        if (screenSaverObservable != null && !mainActivity.currentlyInStandbyPeriod)
+        if (screenSaverObservable != null && !kioskerActivity.currentlyInStandbyPeriod)
             screenSaverObservable.subscribe(getScreenSaverSubscriber());
     }
 
     public void stopScreenSaverSubscription() {
-        screenSaverSubscriber.unsubscribe();
-        subscribers.remove(screenSaverSubscriber);
-        if (mainActivity.currentlyScreenSaving) {
-            mainActivity.currentlyScreenSaving = false;
-            mainActivity.refreshDevice();
+        if (screenSaverSubscriber != null) {
+            screenSaverSubscriber.unsubscribe();
+            subscribers.remove(screenSaverSubscriber);
+        }
+        if (kioskerActivity.currentlyScreenSaving) {
+            kioskerActivity.currentlyScreenSaving = false;
+            kioskerActivity.refreshDevice();
         }
     }
 
@@ -70,12 +72,12 @@ public class ScreenSaverController {
                             public void call(Long aLong) {
                                 Log.d(Constants.TAG, "Stopping screensaver.");
                                 // Here we are finished screen saving and we return to the normal layout.
-                                mainActivity.currentlyScreenSaving = false;
+                                kioskerActivity.currentlyScreenSaving = false;
 
                                 // Return to the previous brightness level
-                                StandbyController.dimDevice(mainActivity);
+                                StandbyController.dimDevice(kioskerActivity);
 
-                                mainActivity.refreshDevice();
+                                kioskerActivity.refreshDevice();
                             }
                         });
             }
@@ -88,19 +90,19 @@ public class ScreenSaverController {
             @Override
             public void onNext(Long l) {
                 if (!screenSaverWebPages.isEmpty()) {
-                    mainActivity.currentlyScreenSaving = true;
+                    kioskerActivity.currentlyScreenSaving = true;
 
                     Random rnd = new Random();
                     int randomIndex = rnd.nextInt(screenSaverWebPages.size());
 
                     // Clean current view .
-                    mainActivity.cleanUpMainView();
+                    kioskerActivity.cleanUpMainView();
 
                     // Make a new full screen web view with a random url from the screen saver urls.
                     webController.setupWebView(false, screenSaverWebPages.get(randomIndex), 1.0f, false);
 
                     // Run the screen saver at max brightness
-                    StandbyController.unDimDevice(mainActivity);
+                    StandbyController.unDimDevice(kioskerActivity);
 
                     Log.d(Constants.TAG, String.format("Starting screensaver %s.", screenSaverWebPages.get(randomIndex).title));
                 } else {

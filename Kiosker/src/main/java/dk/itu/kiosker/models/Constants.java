@@ -3,8 +3,10 @@ package dk.itu.kiosker.models;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.utils.RootHelper;
 
 // Constants and other device specific settings.
@@ -19,6 +21,7 @@ public class Constants {
     public static String SAFE_JSON = "kiosker_safe_json";
     public static String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
     public static String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    public static String KIOSKER_WRONG_OR_NO_PASSWORD_ID = "kiosker_wrong_or_no_password_id";
     public static String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
     public static String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
     public static String KIOSKER_PASSWORD_SALT_ID = "kiosker_password_salt_id";
@@ -26,7 +29,7 @@ public class Constants {
     private static String INITIAL_RUN = "initial_run_of_application";
     private static String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
-    public static String settingsText = "This is a dummy settings text";
+    public static String settingsText = "No settings loaded.";
 
     public static Boolean getAllowHome(Activity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
@@ -85,8 +88,8 @@ public class Constants {
         return RootHelper.checkRootMethod1() || RootHelper.checkRootMethod2() || RootHelper.checkRootMethod3();
     }
 
-    public static Boolean hasSafeSettings(MainActivity mainActivity) {
-        return !LocalSettings.getSafeJson(mainActivity).isEmpty();
+    public static Boolean hasSafeSettings(KioskerActivity kioskerActivity) {
+        return !LocalSettings.getSafeJson(kioskerActivity).isEmpty();
     }
 
     public static Boolean getAllowSwitching(Activity activity) {
@@ -94,7 +97,7 @@ public class Constants {
         return prefs.getBoolean(KIOSKER_ALLOW_SWITCHING_ID, false);
     }
 
-    public static void setAllowSwitching(MainActivity activity, Boolean allowSwitching) {
+    public static void setAllowSwitching(KioskerActivity activity, Boolean allowSwitching) {
         if (allowSwitching == null)
             allowSwitching = false;
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
@@ -102,47 +105,54 @@ public class Constants {
         editor.commit();
     }
 
-    public static String getPasswordHash(MainActivity activity) {
+    public static String getPasswordHash(KioskerActivity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_PASSWORD_HASH_ID, "");
     }
 
-    public static void setPasswordHash(MainActivity activity, String passwordHash) {
+    public static void setPasswordHash(KioskerActivity activity, String passwordHash) {
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_PASSWORD_HASH_ID, passwordHash);
         editor.commit();
     }
 
-    public static String getMasterPasswordHash(MainActivity activity) {
+    public static String getMasterPasswordHash(KioskerActivity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_MASTER_PASSWORD_HASH_ID, "");
     }
 
-    public static void setMasterPasswordHash(MainActivity activity, String masterPasswordHash) {
+    public static void setMasterPasswordHash(KioskerActivity activity, String masterPasswordHash) {
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_MASTER_PASSWORD_HASH_ID, masterPasswordHash);
         editor.commit();
     }
 
-    public static void setPasswordSalt(MainActivity activity, String passwordSalt) {
+    public static void setPasswordSalt(KioskerActivity activity, String passwordSalt) {
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_PASSWORD_SALT_ID, passwordSalt);
         editor.commit();
     }
 
-    public static String getPasswordSalt(MainActivity activity) {
+    public static String getPasswordSalt(KioskerActivity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_PASSWORD_SALT_ID, "");
     }
 
-    public static void setMasterPasswordSalt(MainActivity activity, String masterPasswordSalt) {
+    public static void setMasterPasswordSalt(KioskerActivity activity, String masterPasswordSalt) {
         SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_MASTER_PASSWORD_SALT_ID, masterPasswordSalt);
         editor.commit();
     }
 
-    public static String getMasterPasswordSalt(MainActivity activity) {
+    public static String getMasterPasswordSalt(KioskerActivity activity) {
         SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_MASTER_PASSWORD_SALT_ID, "");
+    }
+
+    public static boolean isNetworkAvailable(KioskerActivity activity) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

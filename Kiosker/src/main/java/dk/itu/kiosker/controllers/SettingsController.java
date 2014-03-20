@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.utils.SettingsExtractor;
@@ -17,7 +17,7 @@ import rx.android.schedulers.AndroidSchedulers;
 public class SettingsController {
     // We wait 5 seconds before starting scheduled tasks after a touch event.
     private final Observable<Long> delayedScheduledTasksObservable = Observable.timer(5, TimeUnit.SECONDS).subscribeOn(AndroidSchedulers.mainThread());
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     private final SoundController soundController;
     private final WebController webController;
     private final StandbyController standbyController;
@@ -28,21 +28,21 @@ public class SettingsController {
     private final ArrayList<Subscriber> subscribers;
     private Subscriber<Long> delayedScheduledTasksSubscription;
 
-    public SettingsController(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
+    public SettingsController(KioskerActivity kioskerActivity) {
+        this.kioskerActivity = kioskerActivity;
         subscribers = new ArrayList<>();
-        soundController = new SoundController(mainActivity, subscribers);
-        webController = new WebController(mainActivity, subscribers);
-        standbyController = new StandbyController(mainActivity, subscribers);
-        hardwareController = new HardwareController(mainActivity);
-        refreshController = new RefreshController(mainActivity);
+        soundController = new SoundController(kioskerActivity, subscribers);
+        webController = new WebController(kioskerActivity, subscribers);
+        standbyController = new StandbyController(kioskerActivity, subscribers);
+        hardwareController = new HardwareController(kioskerActivity);
+        refreshController = new RefreshController(kioskerActivity);
     }
 
-    public void handleSettings(LinkedHashMap settings) {
-        Constants.setPasswordHash(mainActivity, SettingsExtractor.getString(settings, "passwordHash"));
-        Constants.setMasterPasswordHash(mainActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
-        Constants.setPasswordSalt(mainActivity, SettingsExtractor.getString(settings, "passwordSalt"));
-        Constants.setMasterPasswordSalt(mainActivity, SettingsExtractor.getString(settings, "masterPasswordSalt"));
+    public void handleSettings(LinkedHashMap settings, boolean baseSettings) {
+        Constants.setPasswordHash(kioskerActivity, SettingsExtractor.getString(settings, "passwordHash"));
+        Constants.setMasterPasswordHash(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
+        Constants.setPasswordSalt(kioskerActivity, SettingsExtractor.getString(settings, "passwordSalt"));
+        Constants.setMasterPasswordSalt(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordSalt"));
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);
@@ -51,18 +51,18 @@ public class SettingsController {
 
         // Save these settings as the safe defaults.
         if (!settings.isEmpty())
-            LocalSettings.setSafeJson(mainActivity, settings);
+            LocalSettings.setSafeJson(kioskerActivity, settings);
 
         // Show our settings in the settings activity.
         Constants.settingsText = settings.toString();
 
         // If the settings are empty we have failed to get any settings.
-        if (settings.isEmpty()) {
-            mainActivity.updateMainStatus(":(");
-            mainActivity.updateSubStatus("Sorry - error while downloading. Wrong base url?");
-            mainActivity.createSecretMenuButton();
+        if (settings.isEmpty() && baseSettings) {
+            kioskerActivity.updateMainStatus(":(");
+            kioskerActivity.updateSubStatus("Sorry - error while downloading. Wrong base url?");
+            kioskerActivity.createSecretMenuButton();
         } else
-            mainActivity.removeStatusTextViews();
+            kioskerActivity.removeStatusTextViews();
 
         // When all the settings have been parsed check to see if we should hide the ui.
         hardwareController.hideNavigationUI();
@@ -75,7 +75,7 @@ public class SettingsController {
      */
     public void loadSafeSettings() {
         Log.d(Constants.TAG, "Loading default settings.");
-        handleSettings(LocalSettings.getSafeJson(mainActivity));
+        handleSettings(LocalSettings.getSafeJson(kioskerActivity), true);
     }
 
     private Subscriber<Long> getDelayedScheduledTasksSubscription() {
@@ -93,7 +93,7 @@ public class SettingsController {
             @Override
             public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Restarting scheduled tasks.");
-                mainActivity.userIsInteractingWithDevice = false;
+                kioskerActivity.userIsInteractingWithDevice = false;
                 webController.startScreenSaverSubscription();
                 webController.startCycleSecondarySubscription();
                 standbyController.startDimSubscription();
@@ -123,8 +123,8 @@ public class SettingsController {
 
     public void unsubscribeScheduledTasks() {
         // If we are in standby mode make sure that we don't unsubscribe our wake subscriber.
-        if (mainActivity.currentlyInStandbyPeriod)
-            subscribers.remove(mainActivity.wakeSubscriber);
+        if (kioskerActivity.currentlyInStandbyPeriod)
+            subscribers.remove(kioskerActivity.wakeSubscriber);
         for (Subscriber s : subscribers)
             s.unsubscribe();
         subscribers.clear();

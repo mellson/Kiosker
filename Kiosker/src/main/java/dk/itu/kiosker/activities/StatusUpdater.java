@@ -2,6 +2,7 @@ package dk.itu.kiosker.activities;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 
 import java.util.Random;
 
+import dk.itu.kiosker.models.Constants;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -18,10 +20,10 @@ class StatusUpdater {
     private final TextView subStatusTextView;
     private final LinearLayout mainLayout;
 
-    public StatusUpdater(MainActivity mainActivity) {
-        mainStatusTextView = getTextView(60, 0.7f, mainActivity);
-        subStatusTextView = getTextView(25, 0.5f, mainActivity);
-        this.mainLayout = mainActivity.mainLayout;
+    public StatusUpdater(KioskerActivity kioskerActivity) {
+        mainStatusTextView = getTextView(60, 0.7f, kioskerActivity);
+        subStatusTextView = getTextView(25, 0.5f, kioskerActivity);
+        this.mainLayout = kioskerActivity.mainLayout;
     }
 
     private TextView getTextView(int textSize, float alpha, Activity activity) {
@@ -44,8 +46,9 @@ class StatusUpdater {
      * @param status   the status you would like to show in the text view.
      */
     private void updateTextView(final TextView textView, final String status) {
+        Log.d(Constants.TAG, status);
         Observable<Long> o = Observable.from(1L);
-        o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
+        o.subscribeOn(AndroidSchedulers.mainThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
             @Override
             public void call(Long aLong) {
                 // While we download settings we flash the background in random colors.

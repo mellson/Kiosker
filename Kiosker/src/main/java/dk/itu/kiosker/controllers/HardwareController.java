@@ -4,26 +4,26 @@ import android.util.Log;
 
 import java.util.LinkedHashMap;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
 
 class HardwareController {
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     private Boolean hardwareSettingsParsed = false;
 
-    public HardwareController(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
+    public HardwareController(KioskerActivity kioskerActivity) {
+        this.kioskerActivity = kioskerActivity;
     }
 
     public void handleHardwareSettings(LinkedHashMap settings) {
-        Constants.setAllowHome(mainActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
+        Constants.setAllowHome(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
         hardwareSettingsParsed = true;
     }
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
     private Boolean allowHome() {
-        return Constants.getAllowHome(mainActivity);
+        return Constants.getAllowHome(kioskerActivity);
     }
 
     /**

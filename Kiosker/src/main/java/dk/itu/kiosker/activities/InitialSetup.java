@@ -20,11 +20,11 @@ public class InitialSetup {
      * <p/>
      * This initial run can be triggered by resetting the device.
      */
-    public static void start(final MainActivity mainActivity) {
-        Constants.setInitialRun(mainActivity, true);
-        mainActivity.updateMainStatus("Initial Run");
-        mainActivity.updateSubStatus("Please set the base url.");
-        final EditText et = new EditText(mainActivity);
+    public static void start(final KioskerActivity kioskerActivity) {
+        Constants.setInitialRun(kioskerActivity, true);
+        kioskerActivity.updateMainStatus("Initial Run");
+        kioskerActivity.updateSubStatus("Please set the base url.");
+        final EditText et = new EditText(kioskerActivity);
         et.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         et.setGravity(Gravity.CENTER);
         et.setTextSize(25);
@@ -37,21 +37,21 @@ public class InitialSetup {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     String baseUrl = et.getText().toString();
                     if (baseUrl.isEmpty() || !URLUtil.isValidUrl(baseUrl)) {
-                        Toast.makeText(mainActivity, "You did not enter a valid base url", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(kioskerActivity, "You did not enter a valid base url", Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     // Hide the keyboard
-                    Constants.setJsonBaseUrl(mainActivity, baseUrl);
-                    InputMethodManager imm = (InputMethodManager) mainActivity.getSystemService(
+                    Constants.setJsonBaseUrl(kioskerActivity, baseUrl);
+                    InputMethodManager imm = (InputMethodManager) kioskerActivity.getSystemService(
                             Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
-                    Constants.setInitialRun(mainActivity, false);
-                    mainActivity.refreshDevice();
+                    Constants.setInitialRun(kioskerActivity, false);
+                    kioskerActivity.refreshDevice();
                     return true;
                 }
                 return false;
             }
         });
-        mainActivity.mainLayout.addView(et);
+        kioskerActivity.mainLayout.addView(et);
     }
 }

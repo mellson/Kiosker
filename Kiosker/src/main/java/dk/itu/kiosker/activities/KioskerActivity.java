@@ -17,10 +17,10 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
+import dk.itu.kiosker.utils.IntentHelper;
 import rx.Subscriber;
 
-public class MainActivity extends Activity {
-    public Boolean showingSettings = false;
+public class KioskerActivity extends Activity {
     public boolean currentlyInStandbyPeriod;
     public boolean currentlyScreenSaving;
     public boolean userIsInteractingWithDevice;
@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(Constants.TAG, "onCreate() called");
         setupApplication();
     }
 
@@ -54,23 +55,32 @@ public class MainActivity extends Activity {
 
     /**
      * Clears the current view and downloads settings again.
+     * If there is no internet it will retry after 5 seconds.
      */
     public void refreshDevice() {
         if (Constants.getInitialRun(this)) return;
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
         settingsController.unsubscribeScheduledTasks();
-        statusUpdater.updateMainStatus("Downloading settings");
-        statusUpdater.updateSubStatus("Starting download.");
-        OnlineSettings.getSettings(this);
+        if (!Constants.isNetworkAvailable(this)) {
+            statusUpdater.updateMainStatus("No internet");
+            statusUpdater.updateSubStatus("Please refresh from settings.");
+            createSecretMenuButton();
+        } else {
+            statusUpdater.updateMainStatus("Downloading settings");
+            statusUpdater.updateSubStatus("Starting download.");
+            OnlineSettings.getSettings(this);
+        }
     }
 
     /**
      * Removes all views added to the main layout and resets all web controllers.
      */
     public void cleanUpMainView() {
-        mainLayout.removeAllViews();
-        settingsController.clearWebViews();
+        if (mainLayout != null)
+            mainLayout.removeAllViews();
+        if (settingsController != null)
+            settingsController.clearWebViews();
     }
     //endregion
 
@@ -82,6 +92,15 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(Constants.TAG, "onActivity result");
+        Boolean allowHome = data.getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
+
+        // If the user entered a wrong or no password at all, just return.
+        boolean wrongOrNoPassword = data.getBooleanExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, false);
+        if (wrongOrNoPassword) {
+            handleUIafterSettings(allowHome);
+            return;
+        }
+
         String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
         Constants.setDeviceId(this, deviceId);
 
@@ -95,8 +114,10 @@ public class MainActivity extends Activity {
             InitialSetup.start(this);
             return;
         }
+        handleUIafterSettings(allowHome);
+    }
 
-        Boolean allowHome = data.getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
+    private void handleUIafterSettings(Boolean allowHome) {
         if (allowHome != Constants.getAllowHome(this)) {
             Constants.setAllowHome(this, allowHome);
             if (!allowHome) {
@@ -106,7 +127,6 @@ public class MainActivity extends Activity {
                 showNavigationUI();
             }
         }
-        showingSettings = false;
     }
     //endregion
 
@@ -168,14 +188,15 @@ public class MainActivity extends Activity {
      * Enable the full screen immersive mode introduced in kit kat.
      */
     private void setFullScreenImmersiveMode() {
-        mainLayout.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        );
+        if (mainLayout != null)
+            mainLayout.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            );
     }
 
     public void createSecretMenuButton() {
@@ -185,7 +206,8 @@ public class MainActivity extends Activity {
         secretMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+                Intent i = new Intent(KioskerActivity.this, SettingsActivity.class);
+                IntentHelper.addDataToSettingsIntent(i, KioskerActivity.this);
                 startActivityForResult(i, 0);
             }
         });
@@ -205,8 +227,8 @@ public class MainActivity extends Activity {
         settingsController.reloadWebViews();
     }
 
-    public void handleSettings(LinkedHashMap currentSettings) {
-        settingsController.handleSettings(currentSettings);
+    public void handleSettings(LinkedHashMap currentSettings, boolean baseSettings) {
+        settingsController.handleSettings(currentSettings, baseSettings);
     }
 
     public void loadSafeSettings() {

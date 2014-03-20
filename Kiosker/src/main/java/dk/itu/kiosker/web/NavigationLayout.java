@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import rx.Observable;
 import rx.Subscriber;
@@ -39,21 +39,21 @@ public class NavigationLayout extends LinearLayout {
     private String homeUrl;
     private Subscriber<Long> navigationHideSubscriber;
 
-    public NavigationLayout(boolean homeView, MainActivity mainActivity, final WebView webView, final ArrayList<WebPage> sitesWebPages) {
-        super(mainActivity);
+    public NavigationLayout(boolean homeView, KioskerActivity kioskerActivity, final WebView webView, final ArrayList<WebPage> sitesWebPages) {
+        super(kioskerActivity);
         this.webView = webView;
         this.setGravity(Gravity.CENTER_VERTICAL);
 
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        navigationControls = new LinearLayout(mainActivity);
+        navigationControls = new LinearLayout(kioskerActivity);
         navigationControls.setLayoutParams(params);
         navigationControls.setOrientation(HORIZONTAL);
         navigationControls.setBackgroundColor(Color.BLACK);
 
-        Typeface font = Typeface.createFromAsset(mainActivity.getAssets(), "fontawesome-webfont.ttf");
-        backButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        Typeface font = Typeface.createFromAsset(kioskerActivity.getAssets(), "fontawesome-webfont.ttf");
+        backButton = new Button(kioskerActivity, null, android.R.attr.buttonStyleSmall);
         backButton.setTypeface(font);
-        backButton.setText(mainActivity.getString(R.string.icon_back));
+        backButton.setText(kioskerActivity.getString(R.string.icon_back));
         backButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,9 +62,9 @@ public class NavigationLayout extends LinearLayout {
             }
         });
 
-        forwardButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        forwardButton = new Button(kioskerActivity, null, android.R.attr.buttonStyleSmall);
         forwardButton.setTypeface(font);
-        forwardButton.setText(mainActivity.getString(R.string.icon_forward));
+        forwardButton.setText(kioskerActivity.getString(R.string.icon_forward));
         forwardButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,9 +73,9 @@ public class NavigationLayout extends LinearLayout {
             }
         });
 
-        Button homeButton = new Button(mainActivity, null, android.R.attr.buttonStyleSmall);
+        Button homeButton = new Button(kioskerActivity, null, android.R.attr.buttonStyleSmall);
         homeButton.setTypeface(font);
-        homeButton.setText(mainActivity.getString(R.string.icon_home));
+        homeButton.setText(kioskerActivity.getString(R.string.icon_home));
         homeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -90,16 +90,16 @@ public class NavigationLayout extends LinearLayout {
         navigationControls.addView(homeButton);
 
         // Add the site selector if we are on the secondary panel and the user is allowed to change sites.
-        allowSwitching = homeView ? false : Constants.getAllowSwitching(mainActivity);
+        allowSwitching = homeView ? false : Constants.getAllowSwitching(kioskerActivity);
         if (!homeView && allowSwitching) {
             ArrayList<String> siteTitles = new ArrayList<>();
             for (WebPage webPage : sitesWebPages) {
                 siteTitles.add(webPage.title);
             }
 
-            titleSpinner = new Spinner(mainActivity);
+            titleSpinner = new Spinner(kioskerActivity);
             titleSpinner.setPadding(0,0,0,0);
-            ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item, siteTitles);
+            ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(kioskerActivity, android.R.layout.simple_spinner_dropdown_item, siteTitles);
             titleSpinner.setAdapter(spinnerArrayAdapter);
             titleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
@@ -19,16 +19,18 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
 class StandbyController {
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     private final ArrayList<Subscriber> subscribers;
     private Subscriber<Long> idleDimSubscriber;
     private Observable<Long> idleDimObservable;
     //region Device sleep methods.
     private PowerManager.WakeLock fullWakeLock;
     private PowerManager.WakeLock partialWakeLock;
+    private Subscriber<Long> standbyStartTimeSubscriber;
+    private Subscriber<Long> standbyStopTimeSubscriber;
 
-    public StandbyController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
-        this.mainActivity = mainActivity;
+    public StandbyController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers) {
+        this.kioskerActivity = kioskerActivity;
         this.subscribers = subscribers;
     }
 
@@ -47,8 +49,13 @@ class StandbyController {
             // Creating a simple idleDimObservable we can define a task on.
             Observable<Long> startObservable = Observable.from(1L);
 
-            // Create a subscriber that will set the volume to 0.
-            Subscriber<Long> standbyStartTimeSubscriber = getStandbySubscriber(true);
+            if (standbyStartTimeSubscriber != null) {
+                standbyStartTimeSubscriber.unsubscribe();
+                subscribers.remove(standbyStartTimeSubscriber);
+            }
+
+            // Create a subscriber that will set start the standby period
+            standbyStartTimeSubscriber = getStandbySubscriber(true);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(standbyStartTimeSubscriber);
@@ -63,8 +70,13 @@ class StandbyController {
             // Creating a simple idleDimObservable we can define a task on.
             Observable<Long> stopObservable = Observable.from(1L);
 
-            // Create a subscriber that will set the volume to 0.
-            Subscriber<Long> standbyStopTimeSubscriber = getStandbySubscriber(false);
+            if (standbyStopTimeSubscriber != null) {
+                standbyStopTimeSubscriber.unsubscribe();
+                subscribers.remove(standbyStopTimeSubscriber);
+            }
+
+            // Create a subscriber that will end the standby period
+            standbyStopTimeSubscriber = getStandbySubscriber(false);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(standbyStopTimeSubscriber);
@@ -82,17 +94,17 @@ class StandbyController {
         }
     }
 
-    public static void unDimDevice(MainActivity mainActivity) {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+    public static void unDimDevice(KioskerActivity kioskerActivity) {
+        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
         params.screenBrightness = -1;
-        mainActivity.getWindow().setAttributes(params);
+        kioskerActivity.getWindow().setAttributes(params);
     }
 
-    public static void dimDevice(MainActivity mainActivity) {
-        if (!mainActivity.currentlyScreenSaving) {
-            WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+    public static void dimDevice(KioskerActivity kioskerActivity) {
+        if (!kioskerActivity.currentlyScreenSaving) {
+            WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
             params.screenBrightness = 0;
-            mainActivity.getWindow().setAttributes(params);
+            kioskerActivity.getWindow().setAttributes(params);
         }
     }
 
@@ -111,23 +123,27 @@ class StandbyController {
             public void onNext(Long aLong) {
                 if (startStandby) {
                     Log.d(Constants.TAG, "Starting standby.");
-                    mainActivity.currentlyInStandbyPeriod = true;
+                    kioskerActivity.currentlyInStandbyPeriod = true;
                     removeKeepScreenOn();
                 } else {
                     Log.d(Constants.TAG, "Ending standby.");
-                    mainActivity.currentlyInStandbyPeriod = false;
+                    kioskerActivity.currentlyInStandbyPeriod = false;
                     wakeDevice();
-                    unDimDevice(mainActivity);
+                    unDimDevice(kioskerActivity);
                 }
             }
         };
         // If it is the wake subscriber add it to the main activity, so we can keep it alive if we reach standby mode.
         if (!startStandby)
-            mainActivity.wakeSubscriber = subscriber;
+            kioskerActivity.wakeSubscriber = subscriber;
         return subscriber;
     }
 
     private Subscriber<Long> getIdleDimSubscriber() {
+        if (idleDimSubscriber != null && !idleDimSubscriber.isUnsubscribed()) {
+            idleDimSubscriber.unsubscribe();
+            subscribers.remove(idleDimSubscriber);
+        }
         idleDimSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
@@ -142,10 +158,10 @@ class StandbyController {
             @Override
             public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Idle time started.");
-                dimDevice(mainActivity);
-                if (!mainActivity.currentlyInStandbyPeriod && !mainActivity.currentlyScreenSaving)
-                    mainActivity.backToMainActivity();
-                if (mainActivity.currentlyInStandbyPeriod)
+                dimDevice(kioskerActivity);
+                if (!kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving)
+                    kioskerActivity.backToMainActivity();
+                if (kioskerActivity.currentlyInStandbyPeriod)
                     removeKeepScreenOn();
             }
         };
@@ -154,14 +170,16 @@ class StandbyController {
     }
 
     public void stopDimSubscription() {
-        unDimDevice(mainActivity);
-        if (idleDimSubscriber != null && !idleDimSubscriber.isUnsubscribed())
+        unDimDevice(kioskerActivity);
+        if (idleDimSubscriber != null && !idleDimSubscriber.isUnsubscribed()) {
             idleDimSubscriber.unsubscribe();
+            subscribers.remove(idleDimSubscriber);
+        }
     }
 
     public void startDimSubscription() {
         // Restart the idle time out if we are not in the standby period.
-        if (idleDimObservable != null && !mainActivity.currentlyInStandbyPeriod)
+        if (idleDimObservable != null && !kioskerActivity.currentlyInStandbyPeriod)
             idleDimObservable.subscribe(getIdleDimSubscriber());
             // If we are in the standby period dim the screen again after 30 secs.
         else
@@ -173,15 +191,15 @@ class StandbyController {
      * This will make the device go to sleep after the normal screen timeout setting on the device.
      */
     void removeKeepScreenOn() {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
         params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        mainActivity.getWindow().setAttributes(params);
+        kioskerActivity.getWindow().setAttributes(params);
     }
 
     void keepScreenOn() {
-        WindowManager.LayoutParams params = mainActivity.getWindow().getAttributes();
+        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
         params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        mainActivity.getWindow().setAttributes(params);
+        kioskerActivity.getWindow().setAttributes(params);
         createWakeLocks();
     }
 
@@ -189,7 +207,7 @@ class StandbyController {
      * This method creates the wake locks we need for later waking of the device.
      */
     void createWakeLocks() {
-        PowerManager powerManager = (PowerManager) mainActivity.getSystemService(Context.POWER_SERVICE);
+        PowerManager powerManager = (PowerManager) kioskerActivity.getSystemService(Context.POWER_SERVICE);
         fullWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), Constants.TAG + "FULL WAKE LOCK");
         partialWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.TAG + " PARTIAL WAKE LOCK");
     }
@@ -199,7 +217,7 @@ class StandbyController {
      */
     void wakeDevice() {
         fullWakeLock.acquire();
-        KeyguardManager keyguardManager = (KeyguardManager) mainActivity.getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager keyguardManager = (KeyguardManager) kioskerActivity.getSystemService(Context.KEYGUARD_SERVICE);
         KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
         keyguardLock.disableKeyguard();
         keepScreenOn();

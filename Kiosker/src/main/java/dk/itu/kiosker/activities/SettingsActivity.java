@@ -33,6 +33,7 @@ public class SettingsActivity extends Activity {
     private String MASTER_PASSWORD_SALT;
     private Boolean resetDevice = false;
     private Boolean allowHome = false;
+    private Boolean wrongOrNoPasswordEntered = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +142,8 @@ public class SettingsActivity extends Activity {
     }
 
     private void showPasswordDialog() {
+        wrongOrNoPasswordEntered = true;
+
         // Set an EditText view to get user input
         final EditText[] input = {new EditText(this)};
         final Boolean[] okToEnter = {false};
@@ -171,6 +174,7 @@ public class SettingsActivity extends Activity {
                             Toast.makeText(SettingsActivity.this, "Correct password!", Toast.LENGTH_SHORT).show();
                             setupSettingsView();
                             okToEnter[0] = true;
+                            wrongOrNoPasswordEntered = false;
                         } else if (!encodedPassword.equals(PASSWORD_HASH) || !encodedMasterPassword.equals(MASTER_PASSWORD_HASH)) {
                             hasEnteredPassword[0] = true;
                         }
@@ -220,6 +224,9 @@ public class SettingsActivity extends Activity {
     public void finish() {
         // Prepare data intent
         Intent data = new Intent();
+
+        // Did the user input a wrong password?
+        data.putExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, wrongOrNoPasswordEntered);
 
         // Should the device be reset?
         data.putExtra(Constants.KIOSKER_RESET_DEVICE_ID, resetDevice);

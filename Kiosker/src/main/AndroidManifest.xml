@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
@@ -22,8 +23,15 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+        <!--Receiver to handle updates from play store -->
+        <receiver android:name="dk.itu.kiosker.utils.KioskerUpdateReceiver" >
+            <intent-filter android:priority="1000" >
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" android:path="dk.itu.kiosker"/>
+            </intent-filter>
+        </receiver>
         <activity
-            android:name="dk.itu.kiosker.activities.MainActivity"
+            android:name=".activities.KioskerActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
             <intent-filter>

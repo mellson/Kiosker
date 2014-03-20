@@ -8,7 +8,8 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
+import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
 import rx.Observable;
 import rx.Subscriber;
@@ -16,17 +17,17 @@ import rx.android.schedulers.AndroidSchedulers;
 
 public class ActivityController {
     /**
-     * When the MainActivity goes into the background this method will decide if that change was ok.
+     * When the KioskerActivity goes into the background this method will decide if that change was ok.
      * If it was it does nothing.
      * If the change was unwanted we go back to this activity after a given period of time.
      */
-    public static void handleMainActivityGoingAway(final MainActivity mainActivity) { // TODO er det her den bruger meget strøm
-        if (!showingAllowedActivity(mainActivity))
+    public static void handleMainActivityGoingAway(final KioskerActivity kioskerActivity) {
+        if (!showingAllowedActivity(kioskerActivity))
             getCountdownString().delay(1, TimeUnit.SECONDS).subscribe(new Subscriber<String>() {
                 @Override
                 public void onCompleted() {
-                    if (!showingAllowedActivity(mainActivity))
-                        backToMainActivity(mainActivity);
+                    if (!showingAllowedActivity(kioskerActivity))
+                        backToMainActivity(kioskerActivity);
                 }
 
                 @Override
@@ -36,8 +37,8 @@ public class ActivityController {
 
                 @Override
                 public void onNext(String msg) {
-                    if (!showingAllowedActivity(mainActivity))
-                        Toast.makeText(mainActivity, msg, Toast.LENGTH_SHORT).show();
+                    if (!showingAllowedActivity(kioskerActivity))
+                        Toast.makeText(kioskerActivity, msg, Toast.LENGTH_SHORT).show();
                     else
                         unsubscribe();
                 }
@@ -45,7 +46,7 @@ public class ActivityController {
     }
 
     /**
-     * Returns a series of strings indicating when the application will return to the MainActivity.
+     * Returns a series of strings indicating when the application will return to the KioskerActivity.
      */
     private static Observable<String> getCountdownString() {
         final int totalCountdown = 30;
@@ -77,11 +78,12 @@ public class ActivityController {
      *
      * @return true if we are showing an activity we want.
      */
-    private static Boolean showingAllowedActivity(MainActivity mainActivity) {
-        ActivityManager am = (ActivityManager) mainActivity.getSystemService(Context.ACTIVITY_SERVICE);
+    private static Boolean showingAllowedActivity(KioskerActivity kioskerActivity) {
+        ActivityManager am = (ActivityManager) kioskerActivity.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
-        Boolean showingMainActivity = taskInfo.get(0).topActivity.getClassName().contains(MainActivity.class.getName());
-        return showingMainActivity || mainActivity.showingSettings || Constants.getAllowHome(mainActivity);
+        Boolean showingMainActivity = taskInfo.get(0).topActivity.getClassName().contains(KioskerActivity.class.getName());
+        Boolean showingSettingsActivity = taskInfo.get(0).topActivity.getClassName().contains(SettingsActivity.class.getName());
+        return showingMainActivity || showingSettingsActivity || Constants.getAllowHome(kioskerActivity);
     }
 
     /**
@@ -96,7 +98,7 @@ public class ActivityController {
             String className = taskInfo1.topActivity.getClassName();
             if (className != null && !className.isEmpty()) {
                 Log.d(Constants.TAG, taskInfo1.topActivity.getClassName());
-                if (className.contains(MainActivity.class.getName()))
+                if (className.contains(KioskerActivity.class.getName()))
                     am.moveTaskToFront(taskInfo1.id, ActivityManager.MOVE_TASK_NO_USER_ACTION);
             }
         }

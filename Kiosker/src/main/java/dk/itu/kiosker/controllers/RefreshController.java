@@ -4,7 +4,7 @@ import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -12,13 +12,13 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class RefreshController {
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     public boolean deviceShouldBeReset;
     private Subscriber<Long> shortRefreshSubscriber;
     private Subscriber<Long> settingsSubscription;
 
-    public RefreshController(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
+    public RefreshController(KioskerActivity kioskerActivity) {
+        this.kioskerActivity = kioskerActivity;
     }
 
     /**
@@ -42,8 +42,8 @@ public class RefreshController {
 
             @Override
             public void onNext(Long aLong) {
-                if (!mainActivity.userIsInteractingWithDevice)
-                    mainActivity.refreshDevice();
+                if (!kioskerActivity.userIsInteractingWithDevice)
+                    kioskerActivity.refreshDevice();
                 else
                     deviceShouldBeReset = true;
             }
@@ -81,10 +81,10 @@ public class RefreshController {
 
             @Override
             public void onNext(Long aLong) {
-                if (!mainActivity.userIsInteractingWithDevice) {
+                if (!kioskerActivity.userIsInteractingWithDevice) {
                     deviceShouldBeReset = false;
                     shortRefreshSubscriber.unsubscribe();
-                    mainActivity.refreshDevice();
+                    kioskerActivity.refreshDevice();
                 } else
                     deviceShouldBeReset = true;
             }

@@ -15,9 +15,10 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.web.KioskerWebViewClient;
@@ -31,7 +32,7 @@ import rx.functions.Action1;
 public class WebController {
     // Has our main web view (home) at index 0 and the sites at index 1
     private ArrayList<WebView> webViews;
-    private final MainActivity mainActivity;
+    private final KioskerActivity kioskerActivity;
     public static final int tapsToOpenSettings = 5;
     private int taps = tapsToOpenSettings;
     private final ArrayList<Subscriber> subscribers;
@@ -46,9 +47,10 @@ public class WebController {
     private Subscriber<Long> secondaryCycleSubscriber;
     private int secondaryCycleIndex;
     private Observable<Long> secondaryCycleObservable;
+    private Subscriber<Long> reloadSubscriber;
 
-    public WebController(MainActivity mainActivity, ArrayList<Subscriber> subscribers) {
-        this.mainActivity = mainActivity;
+    public WebController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers) {
+        this.kioskerActivity = kioskerActivity;
         this.subscribers = subscribers;
         lastTap = new Date();
         webViews = new ArrayList<>();
@@ -70,7 +72,7 @@ public class WebController {
         handleWebViewSetup(layout);
         handleAutoCycleSecondary(settings);
 
-        screenSaverController = new ScreenSaverController(mainActivity, subscribers, this);
+        screenSaverController = new ScreenSaverController(kioskerActivity, subscribers, this);
         screenSaverController.handleScreenSaving(settings);
     }
 
@@ -95,7 +97,7 @@ public class WebController {
         // Only handle secondary cycling if we are not in fullscreen layout
         if (!fullScreenMode) {
             boolean allowSwitching = SettingsExtractor.getBoolean(settings, "allowSwitching");
-            Constants.setAllowSwitching(mainActivity, allowSwitching);
+            Constants.setAllowSwitching(kioskerActivity, allowSwitching);
             boolean autoCycleSecondary = SettingsExtractor.getBoolean(settings, "autoCycleSecondary");
             if (autoCycleSecondary && sitesWebPages.size() > 2) {
                 int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
@@ -158,7 +160,12 @@ public class WebController {
         webView.loadUrl(webPage.url);
         addTapToSettings(webView);
         if (reloadPeriodMins > 0 && allowReloading) {
-            Subscriber<Long> reloadSubscriber = reloadSubscriber(webView);
+            if (reloadSubscriber != null) {
+                reloadSubscriber.unsubscribe();
+                subscribers.remove(reloadSubscriber);
+            }
+
+            reloadSubscriber = reloadSubscriber(webView);
 
             // Add our subscriber to subscribers so that we can cancel it later
             subscribers.add(reloadSubscriber);
@@ -169,19 +176,19 @@ public class WebController {
         }
 
         // A frame layout enables us to overlay the navigation on the web view.
-        FrameLayout frameLayout = new FrameLayout(mainActivity);
+        FrameLayout frameLayout = new FrameLayout(kioskerActivity);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         frameLayout.setLayoutParams(params);
 
         // Add navigation options to the web view.
-        NavigationLayout navigationLayout = new NavigationLayout(homeView, mainActivity, webView, sitesWebPages);
+        NavigationLayout navigationLayout = new NavigationLayout(homeView, kioskerActivity, webView, sitesWebPages);
         navigationLayout.hideNavigation();
         navigationLayouts.add(navigationLayout);
 
         // Add the web view and our navigation in a frame layout.
         frameLayout.addView(webView);
         frameLayout.addView(navigationLayout);
-        mainActivity.addView(frameLayout, weight);
+        kioskerActivity.addView(frameLayout, weight);
     }
 
     /**
@@ -192,7 +199,7 @@ public class WebController {
     @SuppressLint("SetJavaScriptEnabled")
     private WebView getWebView() {
         WebView.setWebContentsDebuggingEnabled(true);
-        final WebView webView = new WebView(mainActivity);
+        final WebView webView = new WebView(kioskerActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
 
 //        webView.setWebChromeClient(new KioskerWebChromeClient()); // TODO - Maybe this is not needed since chromium is the engine for web view since Kit Kat.
@@ -222,7 +229,7 @@ public class WebController {
             // Create a click listener that will open settings on the correct number of taps.
             public boolean onTouch(View webView, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    mainActivity.stopScheduledTasks();
+                    kioskerActivity.stopScheduledTasks();
 
                     Date now = new Date();
 
@@ -230,16 +237,9 @@ public class WebController {
                     if (now.getTime() - lastTap.getTime() < 300) {
                         if (taps == 2) {
                             taps = tapsToOpenSettings;
-                            mainActivity.showingSettings = true;
-                            Intent i = new Intent(mainActivity, SettingsActivity.class);
-                            i.putExtra(Constants.KIOSKER_DEVICE_ID, Constants.getDeviceId(mainActivity));
-                            i.putExtra(Constants.JSON_BASE_URL, Constants.getJsonBaseUrl(mainActivity));
-                            i.putExtra(Constants.KIOSKER_ALLOW_HOME_ID, Constants.getAllowHome(mainActivity));
-                            i.putExtra(Constants.KIOSKER_PASSWORD_HASH_ID, Constants.getPasswordHash(mainActivity));
-                            i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID, Constants.getMasterPasswordHash(mainActivity));
-                            i.putExtra(Constants.KIOSKER_PASSWORD_SALT_ID, Constants.getPasswordSalt(mainActivity));
-                            i.putExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID, Constants.getMasterPasswordSalt(mainActivity));
-                            mainActivity.startActivityForResult(i, 0);
+                            Intent i = new Intent(kioskerActivity, SettingsActivity.class);
+                            IntentHelper.addDataToSettingsIntent(i, kioskerActivity);
+                            kioskerActivity.startActivityForResult(i, 0);
                         }
                         taps--;
                     }
@@ -252,7 +252,7 @@ public class WebController {
 
                 // When the user lifts his finger, restart all scheduled tasks and show our navigation.
                 else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    mainActivity.startScheduledTasks();
+                    kioskerActivity.startScheduledTasks();
                     if (webViews.contains(webView))
                         navigationLayouts.get(webViews.indexOf(webView)).showNavigation();
                 }
@@ -262,12 +262,12 @@ public class WebController {
     }
 
     public void clearWebViews() {
-        for (WebView webView : webViews) {
-            webView.destroy();
-        }
-        for (NavigationLayout navigationLayout : navigationLayouts) {
-            navigationLayout.removeAllViews();
-        }
+        if (webViews != null)
+            for (WebView webView : webViews)
+                webView.destroy();
+        if (navigationLayouts != null)
+            for (NavigationLayout navigationLayout : navigationLayouts)
+                navigationLayout.removeAllViews();
         navigationLayouts = resetArray(navigationLayouts);
         webViews = resetArray(webViews);
         homeWebPages = resetArray(homeWebPages);
@@ -334,11 +334,13 @@ public class WebController {
     }
 
     public void startScreenSaverSubscription() {
-        screenSaverController.startScreenSaverSubscription();
+        if (screenSaverController != null)
+            screenSaverController.startScreenSaverSubscription();
     }
 
     public void stopScreenSaverSubscription() {
-        screenSaverController.stopScreenSaverSubscription();
+        if (screenSaverController != null)
+            screenSaverController.stopScreenSaverSubscription();
     }
 
     public void startCycleSecondarySubscription() {

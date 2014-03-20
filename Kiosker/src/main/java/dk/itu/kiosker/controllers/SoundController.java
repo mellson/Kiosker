@@ -18,6 +18,8 @@ import rx.android.schedulers.AndroidSchedulers;
 class SoundController {
     private final Context context;
     private final ArrayList<Subscriber> subscribers;
+    private Subscriber<Integer> quietHoursStartTimeSubscriber;
+    private Subscriber<Integer> quietHoursStopTimeSubscriber;
 
     public SoundController(Context context, ArrayList<Subscriber> subscribers) {
         this.context = context;
@@ -41,8 +43,13 @@ class SoundController {
             // Creating a simple observable we can define a task on.
             Observable<Integer> startObservable = Observable.from(1);
 
+            if (quietHoursStartTimeSubscriber != null) {
+                quietHoursStartTimeSubscriber.unsubscribe();
+                subscribers.remove(quietHoursStartTimeSubscriber);
+            }
+
             // Create a subscriber that will set the volume to 0.
-            Subscriber<Integer> quietHoursStartTimeSubscriber = getVolumeSubscriber(0);
+            quietHoursStartTimeSubscriber = getVolumeSubscriber(0);
 
             // Add the subscriber to our list subscribers.
             subscribers.add(quietHoursStartTimeSubscriber);
@@ -56,7 +63,11 @@ class SoundController {
             // Repeat the above tasks for the stop time.
             Time stopTime = new Time(quietHoursStopTime);
             Observable<Integer> stopObservable = Observable.from(1);
-            Subscriber<Integer> quietHoursStopTimeSubscriber = getVolumeSubscriber(standardVolume);
+            if (quietHoursStopTimeSubscriber != null) {
+                quietHoursStopTimeSubscriber.unsubscribe();
+                subscribers.remove(quietHoursStopTimeSubscriber);
+            }
+            quietHoursStopTimeSubscriber = getVolumeSubscriber(standardVolume);
             subscribers.add(quietHoursStopTimeSubscriber);
             stopObservable
                     .delaySubscription(stopTime.secondsUntil(), TimeUnit.SECONDS)

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.InitialSetup;
-import dk.itu.kiosker.activities.MainActivity;
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.utils.JsonFetcher;
 import retrofit.RetrofitError;
 import rx.Observable;
@@ -18,38 +18,38 @@ import rx.functions.Action1;
 public class OnlineSettings {
     private static LinkedHashMap currentSettings;
 
-    public static void getSettings(MainActivity mainActivity) {
-        Constants.JSON_BASE_URL = Constants.getJsonBaseUrl(mainActivity);
+    public static void getSettings(KioskerActivity kioskerActivity) {
+        Constants.JSON_BASE_URL = Constants.getJsonBaseUrl(kioskerActivity);
 
         if (!Constants.JSON_BASE_URL.isEmpty()) {
             JsonFetcher fetcher = new JsonFetcher();
             fetcher.getObservableMap(Constants.BASE_SETTINGS + Constants.FILE_ENDING)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(baseSettingsObserver(mainActivity));
+                    .subscribe(baseSettingsObserver(kioskerActivity));
         } else {
             LinkedHashMap emptyMap = new LinkedHashMap();
             Observable.from(emptyMap)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(baseSettingsObserver(mainActivity));
+                    .subscribe(baseSettingsObserver(kioskerActivity));
         }
     }
 
     // Observer we use to consume the base json settings.
-    private static Observer<LinkedHashMap> baseSettingsObserver(final MainActivity mainActivity) {
+    private static Observer<LinkedHashMap> baseSettingsObserver(final KioskerActivity kioskerActivity) {
         return new Observer<LinkedHashMap>() {
             @Override
             public void onCompleted() {
                 Log.d(Constants.TAG, "Finished getting base json settings.");
-                mainActivity.updateSubStatus("Finished downloading base settings.");
-                String device_id = Constants.getDeviceId(mainActivity);
+                kioskerActivity.updateSubStatus("Finished downloading base settings.");
+                String device_id = Constants.getDeviceId(kioskerActivity);
                 if (!device_id.isEmpty()) {
                     JsonFetcher jsonFetcher = new JsonFetcher();
                     jsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(deviceSpecificSettingsObserver(mainActivity));
+                            .subscribe(deviceSpecificSettingsObserver(kioskerActivity));
                 }
                 else
-                    mainActivity.handleSettings(currentSettings);
+                    kioskerActivity.handleSettings(currentSettings, true);
             }
 
             @Override
@@ -60,24 +60,24 @@ public class OnlineSettings {
                 Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", error);
 
 
-                mainActivity.updateMainStatus("Error");
-                if (Constants.hasSafeSettings(mainActivity)) {
-                    mainActivity.updateSubStatus(errorReason + ", trying safe settings.");
+                kioskerActivity.updateMainStatus("Error");
+                if (Constants.hasSafeSettings(kioskerActivity)) {
+                    kioskerActivity.updateSubStatus(errorReason + ", trying safe settings.");
 
                     // Of there was an error getting the json we can load or last successful json
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                         @Override
                         public void call(Long aLong) {
-                            mainActivity.cleanUpMainView();
-                            mainActivity.loadSafeSettings();
+                            kioskerActivity.cleanUpMainView();
+                            kioskerActivity.loadSafeSettings();
                         }
                     });
                 } else {
-                    mainActivity.updateSubStatus(errorReason + ", please retry.");
+                    kioskerActivity.updateSubStatus(errorReason + ", please retry.");
                     Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                         @Override
                         public void call(Long aLong) {
-                            InitialSetup.start(mainActivity);
+                            InitialSetup.start(kioskerActivity);
                         }
                     });
                 }
@@ -92,13 +92,13 @@ public class OnlineSettings {
     }
 
     // Observer we use to consume the device specific json settings.
-    private static Observer<LinkedHashMap> deviceSpecificSettingsObserver(final MainActivity mainActivity) {
+    private static Observer<LinkedHashMap> deviceSpecificSettingsObserver(final KioskerActivity kioskerActivity) {
         return new Observer<LinkedHashMap>() {
             @Override
             public void onCompleted() {
                 Log.d(Constants.TAG, "Finished getting device specific json settings.");
-                mainActivity.updateSubStatus("Finished downloading device specific settings.");
-                mainActivity.handleSettings(currentSettings);
+                kioskerActivity.updateSubStatus("Finished downloading device specific settings.");
+                kioskerActivity.handleSettings(currentSettings, false);
             }
 
             @Override
@@ -106,8 +106,8 @@ public class OnlineSettings {
                 RetrofitError error = (RetrofitError) throwable;
                 String errorReason = error.getResponse().getReason();
                 Log.e(Constants.TAG, "Error while getting device specific json settings because " + errorReason + ".", throwable);
-                Toast.makeText(mainActivity, "Error device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
-                mainActivity.handleSettings(currentSettings);
+                Toast.makeText(kioskerActivity, "Error device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
+                kioskerActivity.handleSettings(currentSettings, false);
             }
 
             @Override
