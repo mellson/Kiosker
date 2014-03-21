@@ -21,6 +21,7 @@ import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.IntentHelper;
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class KioskerActivity extends Activity {
     public boolean currentlyInStandbyPeriod;
@@ -83,7 +84,7 @@ public class KioskerActivity extends Activity {
                     refreshDevice();
                 }
             };
-            Observable.timer(2, TimeUnit.MINUTES).subscribe(noInternetSubscriber);
+            Observable.timer(2, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(noInternetSubscriber);
             createSecretMenuButton();
         } else {
             statusUpdater.updateMainStatus("Downloading settings");
