@@ -22,7 +22,7 @@ public class ActivityController {
      * If the change was unwanted we go back to this activity after a given period of time.
      */
     public static void handleMainActivityGoingAway(final KioskerActivity kioskerActivity) {
-        if (!showingAllowedActivity(kioskerActivity))
+        if (!kioskerActivity.currentlyInStandbyPeriod || !showingAllowedActivity(kioskerActivity))
             getCountdownString().delay(1, TimeUnit.SECONDS).subscribe(new Subscriber<String>() {
                 @Override
                 public void onCompleted() {

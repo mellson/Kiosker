@@ -89,7 +89,7 @@ public class ScreenSaverController {
 
             @Override
             public void onNext(Long l) {
-                if (!screenSaverWebPages.isEmpty()) {
+                if (!screenSaverWebPages.isEmpty() && !kioskerActivity.currentlyInStandbyPeriod) {
                     kioskerActivity.currentlyScreenSaving = true;
 
                     Random rnd = new Random();

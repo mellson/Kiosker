@@ -130,7 +130,7 @@ public class WebController {
 
             @Override
             public void onNext(Long l) {
-                if (webViews.size() > 1) {
+                if (webViews.size() > 1 && !kioskerActivity.currentlyInStandbyPeriod) {
                     Log.d(Constants.TAG, "Cycling secondary screen.");
                     secondaryCycleIndex = (secondaryCycleIndex + 1) % sitesWebPages.size();
                     String url = sitesWebPages.get(secondaryCycleIndex).url;
@@ -321,7 +321,7 @@ public class WebController {
             @Override
             public void onNext(Long aLong) {
                 String url = webView.getUrl();
-                if (url == null) {
+                if (url == null || kioskerActivity.currentlyInStandbyPeriod) {
                     unsubscribe();
                     subscribers.remove(this);
                 }
