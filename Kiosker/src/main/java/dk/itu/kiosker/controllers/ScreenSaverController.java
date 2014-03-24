@@ -38,7 +38,7 @@ public class ScreenSaverController {
             screenSaverWebPages = SettingsExtractor.getWebPages(settings, "screensavers");
             if (screenSaveLengthMins > 0) {
                 screenSaverObservable = Observable.timer(screenSavePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
-                screenSaverObservable.subscribe(getScreenSaverSubscriber());
+                startScreenSaverSubscription();
             }
         }
     }
@@ -61,6 +61,8 @@ public class ScreenSaverController {
     }
 
     Subscriber<Long> getScreenSaverSubscriber() {
+        if (screenSaverSubscriber != null && !screenSaverSubscriber.isUnsubscribed())
+            screenSaverSubscriber.unsubscribe();
         screenSaverSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {

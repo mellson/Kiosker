@@ -234,7 +234,6 @@ public class KioskerActivity extends Activity {
     }
 
     public void stopScheduledTasks() {
-        userIsInteractingWithDevice = true;
         settingsController.stopScheduledTasks();
     }
 

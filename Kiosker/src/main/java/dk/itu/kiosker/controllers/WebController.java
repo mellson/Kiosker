@@ -61,6 +61,8 @@ public class WebController {
         reloadPeriodMins = SettingsExtractor.getInteger(settings, "reloadPeriodMins");
         errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
 
+        kioskerActivity.cleanUpMainView();
+
         // Get the layout from settings, if there is no layout defined fallback to 0 - fullscreen layout.
         int tempLayout = SettingsExtractor.getInteger(settings, "layout");
         int layout = (tempLayout >= 0) ? tempLayout : 0;
@@ -229,6 +231,7 @@ public class WebController {
             // Create a click listener that will open settings on the correct number of taps.
             public boolean onTouch(View webView, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    kioskerActivity.userIsInteractingWithDevice = true;
                     kioskerActivity.stopScheduledTasks();
 
                     Date now = new Date();

@@ -124,10 +124,12 @@ class StandbyController {
                 if (startStandby) {
                     Log.d(Constants.TAG, "Starting standby.");
                     kioskerActivity.currentlyInStandbyPeriod = true;
+                    kioskerActivity.stopScheduledTasks();
                     removeKeepScreenOn();
                 } else {
                     Log.d(Constants.TAG, "Ending standby.");
                     kioskerActivity.currentlyInStandbyPeriod = false;
+                    kioskerActivity.startScheduledTasks();
                     wakeDevice();
                     unDimDevice(kioskerActivity);
                 }
