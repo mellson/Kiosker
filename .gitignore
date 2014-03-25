@@ -3,5 +3,5 @@
 /.idea/workspace.xml
 /.idea/libraries/*.*
 .DS_Store
-
 signing.properties
+Kiosker/src/main/res/values/analytics.xml

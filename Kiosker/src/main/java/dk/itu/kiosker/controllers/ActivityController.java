@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -32,7 +33,9 @@ public class ActivityController {
 
                 @Override
                 public void onError(Throwable e) {
-                    Log.e(Constants.TAG, "Error while trying to go create countdown toasts.", e);
+                    String err = "Error while trying to go create countdown toasts.";
+                    Log.e(Constants.TAG, err, e);
+                    GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
                 }
 
                 @Override

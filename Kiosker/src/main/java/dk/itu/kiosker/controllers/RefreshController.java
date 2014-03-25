@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
 import rx.Subscriber;
@@ -37,7 +38,9 @@ public class RefreshController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while getting settings.", e);
+                String err = "Error while getting settings.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -76,7 +79,9 @@ public class RefreshController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while getting a short refresh subscriber.", e);
+                String err = "Error while getting a short refresh subscriber.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

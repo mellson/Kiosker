@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.KioskerActivity;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.JsonFetcher;
 
 public class LocalSettings {
@@ -29,7 +30,9 @@ public class LocalSettings {
             JsonFetcher jsonFetcher = new JsonFetcher();
             json = jsonFetcher.mapper.writeValueAsString(settings);
         } catch (JsonProcessingException e) {
-            Log.e(Constants.TAG, "Error while saving safe settings.", e);
+            String err = "Error while saving safe settings.";
+            Log.e(Constants.TAG, err, e);
+            GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
         }
         SharedPreferences.Editor editor = kioskerActivity.getPreferences(kioskerActivity.MODE_PRIVATE).edit();
         editor.putString(Constants.SAFE_JSON, json);
@@ -44,7 +47,9 @@ public class LocalSettings {
                 JsonFetcher jsonFetcher = new JsonFetcher();
                 return jsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
             } catch (IOException e) {
-                Log.e(Constants.TAG, "Error while loading safe settings.", e);
+                String err = "Error while loading safe settings.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
         return new LinkedHashMap();

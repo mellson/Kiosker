@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
@@ -127,7 +128,9 @@ public class WebController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while cycling secondary screen.", e);
+                String err = "Error while cycling secondary screen.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -202,7 +205,7 @@ public class WebController {
     private WebView getWebView() {
         WebView.setWebContentsDebuggingEnabled(true);
         final WebView webView = new WebView(kioskerActivity);
-        webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins));
+        webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins, kioskerActivity));
 
 //        webView.setWebChromeClient(new KioskerWebChromeClient()); // TODO - Maybe this is not needed since chromium is the engine for web view since Kit Kat.
 
@@ -329,8 +332,11 @@ public class WebController {
                     subscribers.remove(this);
                 }
                 else {
-                    Log.d(Constants.TAG, String.format("Reloading web view with url %s.", url));
-                    webView.reload();
+                    if (Constants.isNetworkAvailable(kioskerActivity)) {
+                        Log.d(Constants.TAG, String.format("Reloading web view with url %s.", url));
+                        webView.reload();
+                    } else
+                        kioskerActivity.refreshDevice();
                 }
             }
         };

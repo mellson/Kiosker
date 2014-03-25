@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 
 public class HardwareController {
@@ -38,7 +39,9 @@ public class HardwareController {
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
             } catch (Exception e) {
-                Log.e(Constants.TAG, "Error while trying to hide navigation ui.", e);
+                String err = "Error while trying to hide navigation ui.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
     }
@@ -55,7 +58,9 @@ public class HardwareController {
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
             } catch (Exception e) {
-                Log.e(Constants.TAG, "Error while trying to show navigation ui.", e);
+                String err = "Error while trying to show navigation ui.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
     }

@@ -6,13 +6,17 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.google.analytics.tracking.android.EasyTracker;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
+import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -50,7 +54,9 @@ public class LogActivity extends Activity {
 
                 @Override
                 public void onError(Throwable e) {
-                    Log.e(Constants.TAG, "Error while updating log update text.", e);
+                    String err = "Error while updating log update text.";
+                    Log.e(Constants.TAG, err, e);
+                    GoogleAnalyticsCustomerErrorLogger.log(err, e, LogActivity.this);
                 }
 
                 @Override
@@ -92,5 +98,14 @@ public class LogActivity extends Activity {
     public void onStart() {
         super.onStart();
         updateLog();
+        HardwareController.showNavigationUI();
+        EasyTracker.getInstance(this).activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        HardwareController.handleNavigationUI();
+        EasyTracker.getInstance(this).activityStop(this);
     }
 }

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import rx.Observable;
 import rx.Subscriber;
@@ -31,7 +32,7 @@ public class SettingsController {
     public SettingsController(KioskerActivity kioskerActivity) {
         this.kioskerActivity = kioskerActivity;
         subscribers = new ArrayList<>();
-        soundController = new SoundController(kioskerActivity, subscribers);
+        soundController = new SoundController(kioskerActivity, subscribers, kioskerActivity);
         webController = new WebController(kioskerActivity, subscribers);
         standbyController = new StandbyController(kioskerActivity, subscribers);
         hardwareController = new HardwareController(kioskerActivity);
@@ -87,7 +88,9 @@ public class SettingsController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while starting delayed tasks.", e);
+                String err = "Error while starting delayed tasks.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -140,6 +143,14 @@ public class SettingsController {
 
     public void handleNavigationUI() {
         hardwareController.handleNavigationUI();
+    }
+
+    public void showNavigationUI() {
+        hardwareController.showNavigationUI();
+    }
+
+    public void hideNavigationUI() {
+        hardwareController.hideNavigationUI();
     }
 
     public void keepScreenOn() {

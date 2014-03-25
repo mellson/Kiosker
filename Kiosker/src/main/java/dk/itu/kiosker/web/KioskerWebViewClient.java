@@ -6,6 +6,7 @@ import android.webkit.WebViewClient;
 
 import java.util.concurrent.TimeUnit;
 
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -13,10 +14,12 @@ import rx.functions.Action1;
 
 public class KioskerWebViewClient extends WebViewClient {
     private final long errorReloadMins;
+    private final KioskerActivity kioskerActivity;
     private boolean errorReloaderStarted;
 
-    public KioskerWebViewClient(long errorReloadMins) {
+    public KioskerWebViewClient(long errorReloadMins, KioskerActivity kioskerActivity) {
         this.errorReloadMins = errorReloadMins;
+        this.kioskerActivity = kioskerActivity;
     }
 
     // you tell the webclient you want to catch when a url is about to load
@@ -44,7 +47,10 @@ public class KioskerWebViewClient extends WebViewClient {
                 public void call(Long aLong) {
                     Log.d(Constants.TAG, "Reloading after error");
                     errorReloaderStarted = false;
-                    view.reload();
+                    if (Constants.isNetworkAvailable(kioskerActivity))
+                        view.reload();
+                    else
+                        kioskerActivity.refreshDevice();
                 }
             });
         }

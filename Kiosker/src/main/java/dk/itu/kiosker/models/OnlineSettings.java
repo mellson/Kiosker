@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.InitialSetup;
 import dk.itu.kiosker.activities.KioskerActivity;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.JsonFetcher;
 import retrofit.RetrofitError;
 import rx.Observable;
@@ -62,10 +63,17 @@ public class OnlineSettings {
                         errorReason = error.getResponse().getReason();
                 }
 
-                if (error != null)
-                    Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", error);
-                else
-                    Log.e(Constants.TAG, "Error while getting base json settings because " + errorReason + ".", throwable);
+                if (error != null) {
+                    String err = "Error while getting base json settings because " + errorReason + ".";
+                    Log.e(Constants.TAG, err, error);
+                    GoogleAnalyticsCustomerErrorLogger.log(err, error, kioskerActivity);
+                }
+                else {
+                    String err = "Error while getting base json settings because " + errorReason + ".";
+                    Log.e(Constants.TAG, err, throwable);
+                    GoogleAnalyticsCustomerErrorLogger.log(err, throwable, kioskerActivity);
+
+                }
 
 
                 kioskerActivity.updateMainStatus("Error");

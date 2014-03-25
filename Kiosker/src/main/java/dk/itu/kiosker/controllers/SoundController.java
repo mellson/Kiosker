@@ -1,5 +1,6 @@
 package dk.itu.kiosker.controllers;
 
+import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.util.Log;
@@ -8,7 +9,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
+import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -20,10 +23,12 @@ class SoundController {
     private final ArrayList<Subscriber> subscribers;
     private Subscriber<Integer> quietHoursStartTimeSubscriber;
     private Subscriber<Integer> quietHoursStopTimeSubscriber;
+    private Activity kioskerActivity;
 
-    public SoundController(Context context, ArrayList<Subscriber> subscribers) {
+    public SoundController(Context context, ArrayList<Subscriber> subscribers, KioskerActivity kioskerActivity) {
         this.context = context;
         this.subscribers = subscribers;
+        this.kioskerActivity = kioskerActivity;
     }
 
     void handleSoundSettings(LinkedHashMap settings) {
@@ -89,7 +94,9 @@ class SoundController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while setting volume.", e);
+                String err = "Error while setting volume.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

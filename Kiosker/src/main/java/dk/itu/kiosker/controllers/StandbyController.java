@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -116,7 +117,9 @@ class StandbyController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while trying to start standby subscriber.", e);
+                String err = "Error while trying to start standby subscriber.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -154,7 +157,9 @@ class StandbyController {
 
             @Override
             public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while dimming device.", e);
+                String err = "Error while dimming device.";
+                Log.e(Constants.TAG, err, e);
+                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

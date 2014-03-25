@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.google.analytics.tracking.android.EasyTracker;
+
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +21,7 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
+import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import rx.Observable;
 import rx.Subscriber;
@@ -83,7 +86,9 @@ public class KioskerActivity extends Activity {
                 public void onCompleted() {}
                 @Override
                 public void onError(Throwable e) {
-                    Log.e(Constants.TAG, "Error while retrying internet connection.", e);
+                    String err = "Error while retrying internet connection.";
+                    Log.e(Constants.TAG, err, e);
+                    GoogleAnalyticsCustomerErrorLogger.log(err, e, KioskerActivity.this);
                 }
                 @Override
                 public void onNext(Long aLong) {
@@ -118,7 +123,6 @@ public class KioskerActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(Constants.TAG, "onActivity result");
-        Boolean allowHome = data.getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
 
         // If the user entered a wrong or no password at all, just return.
         boolean wrongOrNoPassword = data.getBooleanExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, false);
@@ -164,6 +168,7 @@ public class KioskerActivity extends Activity {
             settingsController.stopScheduledTasks();
         }
         cleanUpMainView();
+        EasyTracker.getInstance(this).activityStop(this);
     }
 
     @Override
@@ -181,6 +186,7 @@ public class KioskerActivity extends Activity {
         Log.d(Constants.TAG, "onStart() called");
         setFullScreenImmersiveMode();
         refreshDevice();
+        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override
