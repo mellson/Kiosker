@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
 
 import dk.itu.kiosker.R;
+import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
 
 
@@ -45,7 +46,6 @@ public class SettingsActivity extends Activity {
         MASTER_PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
         PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_SALT_ID);
         MASTER_PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID);
-
 
         if ((PASSWORD_HASH != null && !PASSWORD_HASH.isEmpty())
                 || (MASTER_PASSWORD_HASH != null && !MASTER_PASSWORD_HASH.isEmpty()))
@@ -154,7 +154,7 @@ public class SettingsActivity extends Activity {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         if (!okToEnter[0]) {
-                            String toastMessage = hasEnteredPassword[0] ? "Wrong password!" : "You need to enter a password!";
+                            String toastMessage = hasEnteredPassword[0] ? "Wrong password!" : "Restarting application!";
                             Toast.makeText(SettingsActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
                             finish();
                         }
@@ -179,10 +179,10 @@ public class SettingsActivity extends Activity {
                             hasEnteredPassword[0] = true;
                         }
                     }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                }).setNegativeButton("Restart App", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                restartApp(null);
             }
         }).show();
     }
@@ -279,5 +279,25 @@ public class SettingsActivity extends Activity {
     public void hideSoftKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
+    }
+
+    public void showNavigationUI(View v) {
+        HardwareController.showNavigationUI();
+    }
+
+    public void restartApp(View v) {
+        Intent intent = new Intent(this, KioskerActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("Kill Kiosker", false);
+        startActivity(intent);
+        finish();
+    }
+
+    public void killApp(View v) {
+        Intent intent = new Intent(this, KioskerActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("Kill Kiosker", true);
+        startActivity(intent);
+        finish();
     }
 }

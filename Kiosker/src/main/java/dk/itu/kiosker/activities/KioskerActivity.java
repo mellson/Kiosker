@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.ActivityController;
+import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
@@ -36,6 +37,11 @@ public class KioskerActivity extends Activity {
     //region Create methods.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if( getIntent().getBooleanExtra("Kill Kiosker", false)){
+            HardwareController.showNavigationUI();
+            finish();
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(Constants.TAG, "onCreate() called");
@@ -116,10 +122,7 @@ public class KioskerActivity extends Activity {
 
         // If the user entered a wrong or no password at all, just return.
         boolean wrongOrNoPassword = data.getBooleanExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, false);
-        if (wrongOrNoPassword) {
-            handleUIafterSettings(allowHome);
-            return;
-        }
+        if (wrongOrNoPassword) return;
 
         String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
         Constants.setDeviceId(this, deviceId);
@@ -133,19 +136,6 @@ public class KioskerActivity extends Activity {
             cleanUpMainView();
             InitialSetup.start(this);
             return;
-        }
-        handleUIafterSettings(allowHome);
-    }
-
-    private void handleUIafterSettings(Boolean allowHome) {
-        if (allowHome != Constants.getAllowHome(this)) {
-            Constants.setAllowHome(this, allowHome);
-            if (!allowHome) {
-                hideNavigationUI();
-            }
-            else {
-                showNavigationUI();
-            }
         }
     }
     //endregion
@@ -167,7 +157,6 @@ public class KioskerActivity extends Activity {
     public void onStop() {
         super.onStop();
         Log.d(Constants.TAG, "onStop() called");
-        showNavigationUI();
         if (!currentlyInStandbyPeriod)
             ActivityController.handleMainActivityGoingAway(this);
         if (currentlyInStandbyPeriod) {
@@ -198,7 +187,6 @@ public class KioskerActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         Log.d(Constants.TAG, "onDestroy() called");
-        showNavigationUI();
     }
     //endregion
 
@@ -260,14 +248,6 @@ public class KioskerActivity extends Activity {
 
     private void handleNavigationUI() {
         settingsController.handleNavigationUI();
-    }
-
-    private void showNavigationUI() {
-        settingsController.showNavigationUI();
-    }
-
-    private void hideNavigationUI() {
-        settingsController.hideNavigationUI();
     }
 
     public void removeStatusTextViews() {

@@ -8,9 +8,9 @@ import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
 
-class HardwareController {
-    private final KioskerActivity kioskerActivity;
-    private Boolean hardwareSettingsParsed = false;
+public class HardwareController {
+    private static KioskerActivity kioskerActivity;
+    private static Boolean hardwareSettingsParsed = false;
 
     public HardwareController(KioskerActivity kioskerActivity) {
         this.kioskerActivity = kioskerActivity;
@@ -22,7 +22,7 @@ class HardwareController {
     }
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
-    private Boolean allowHome() {
+    private static Boolean allowHome() {
         return Constants.getAllowHome(kioskerActivity);
     }
 
@@ -31,7 +31,7 @@ class HardwareController {
      * That is the status bar and the soft navigation keys.
      * It requires root to work.
      */
-    public void hideNavigationUI() {
+    public static void hideNavigationUI() {
         if (!allowHome() && hardwareSettingsParsed && Constants.isDeviceRooted()) {
             try {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
@@ -48,7 +48,7 @@ class HardwareController {
      * That is the status bar and the soft navigation keys.
      * It requires root to work.
      */
-    public void showNavigationUI() {
+    public static void showNavigationUI() {
         if (Constants.isDeviceRooted()) {
             try {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
@@ -60,7 +60,7 @@ class HardwareController {
         }
     }
 
-    public void handleNavigationUI() {
+    public static void handleNavigationUI() {
         if (allowHome())
             showNavigationUI();
         else

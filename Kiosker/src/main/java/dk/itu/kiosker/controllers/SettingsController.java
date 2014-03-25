@@ -142,14 +142,6 @@ public class SettingsController {
         hardwareController.handleNavigationUI();
     }
 
-    public void showNavigationUI() {
-        hardwareController.showNavigationUI();
-    }
-
-    public void hideNavigationUI() {
-        hardwareController.hideNavigationUI();
-    }
-
     public void keepScreenOn() {
         standbyController.keepScreenOn();
     }

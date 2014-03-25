@@ -33,6 +33,12 @@
             android:text="Show Log" />
 
         <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="showNavigationUI"
+            android:text="Show Navigation UI" />
+
+        <Button
             android:id="@+id/settingsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -43,6 +49,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Reset Device" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="restartApp"
+            android:text="Restart App" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="killApp"
+            android:text="Kill App" />
 
         <LinearLayout
             android:layout_width="wrap_content"
