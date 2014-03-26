@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.InitialSetup;
 import dk.itu.kiosker.activities.KioskerActivity;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.JsonFetcher;
 import retrofit.RetrofitError;
 import rx.Observable;
@@ -48,8 +48,7 @@ public class OnlineSettings {
                     jsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(deviceSpecificSettingsObserver(kioskerActivity));
-                }
-                else
+                } else
                     kioskerActivity.handleSettings(currentSettings, true);
             }
 
@@ -66,12 +65,11 @@ public class OnlineSettings {
                 if (error != null) {
                     String err = "Error while getting base json settings because " + errorReason + ".";
                     Log.e(Constants.TAG, err, error);
-                    GoogleAnalyticsCustomerErrorLogger.log(err, error, kioskerActivity);
-                }
-                else {
+                    CustomerErrorLogger.log(err, error, kioskerActivity);
+                } else {
                     String err = "Error while getting base json settings because " + errorReason + ".";
                     Log.e(Constants.TAG, err, throwable);
-                    GoogleAnalyticsCustomerErrorLogger.log(err, throwable, kioskerActivity);
+                    CustomerErrorLogger.log(err, throwable, kioskerActivity);
 
                 }
 

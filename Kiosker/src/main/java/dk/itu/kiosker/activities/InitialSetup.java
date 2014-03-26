@@ -52,6 +52,7 @@ public class InitialSetup {
                 return false;
             }
         });
+        et.requestFocus();
         kioskerActivity.mainLayout.addView(et);
     }
 }

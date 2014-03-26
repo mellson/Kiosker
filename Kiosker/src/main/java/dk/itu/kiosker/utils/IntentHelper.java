@@ -8,6 +8,7 @@ import dk.itu.kiosker.models.Constants;
 public class IntentHelper {
     /**
      * Add the data to the intent which will start the settings activity.
+     *
      * @param i
      * @param kioskerActivity
      */

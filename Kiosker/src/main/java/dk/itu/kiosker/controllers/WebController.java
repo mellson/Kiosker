@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
@@ -31,12 +31,12 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class WebController {
-    // Has our main web view (home) at index 0 and the sites at index 1
-    private ArrayList<WebView> webViews;
-    private final KioskerActivity kioskerActivity;
     public static final int tapsToOpenSettings = 5;
     private int taps = tapsToOpenSettings;
+    private final KioskerActivity kioskerActivity;
     private final ArrayList<Subscriber> subscribers;
+    // Has our main web view (home) at index 0 and the sites at index 1
+    private ArrayList<WebView> webViews;
     private ArrayList<NavigationLayout> navigationLayouts;
     private Date lastTap;
     private ArrayList<WebPage> homeWebPages;
@@ -130,7 +130,7 @@ public class WebController {
             public void onError(Throwable e) {
                 String err = "Error while cycling secondary screen.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -154,9 +154,10 @@ public class WebController {
 
     /**
      * Setup the WebViews we need.
-     *  @param homeView is this the main view, if so we don't allow the user to change the url.
-     * @param webPage  the main url for this web view.
-     * @param weight   how much screen estate should this main take?
+     *
+     * @param homeView       is this the main view, if so we don't allow the user to change the url.
+     * @param webPage        the main url for this web view.
+     * @param weight         how much screen estate should this main take?
      * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
     protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading) {
@@ -330,8 +331,7 @@ public class WebController {
                 if (url == null || kioskerActivity.currentlyInStandbyPeriod) {
                     unsubscribe();
                     subscribers.remove(this);
-                }
-                else {
+                } else {
                     if (Constants.isNetworkAvailable(kioskerActivity)) {
                         Log.d(Constants.TAG, String.format("Reloading web view with url %s.", url));
                         webView.reload();

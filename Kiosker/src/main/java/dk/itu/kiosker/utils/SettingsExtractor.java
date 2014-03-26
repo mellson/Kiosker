@@ -24,7 +24,7 @@ public class SettingsExtractor {
         ArrayList<WebPage> webPages = new ArrayList<>();
         if (map.containsKey(key)) {
             for (LinkedHashMap m : ((ArrayList<LinkedHashMap>) map.get(key))) {
-                webPages.add(new WebPage((String) m.get("url"),(String) m.get("title")));
+                webPages.add(new WebPage((String) m.get("url"), (String) m.get("title")));
             }
         }
         return webPages;

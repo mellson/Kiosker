@@ -19,69 +19,73 @@ public class Constants {
     public static String FILE_ENDING = ".json";
     public static String KIOSKER_RESET_DEVICE_ID = "resetDevice";
     public static String SAFE_JSON = "kiosker_safe_json";
+    public static String KIOSKER_KILL_APP_ID = "Kill Kiosker";
     public static String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
     public static String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    private static String KIOSKER_BRIGHTNESS_ID = "kiosker_brightness_id";
     public static String KIOSKER_WRONG_OR_NO_PASSWORD_ID = "kiosker_wrong_or_no_password_id";
     public static String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
     public static String KIOSKER_MASTER_PASSWORD_HASH_ID = "kiosker_master_password_hash_id";
     public static String KIOSKER_PASSWORD_SALT_ID = "kiosker_password_salt_id";
     public static String KIOSKER_MASTER_PASSWORD_SALT_ID = "kiosker_master_password_salt_id";
-    private static String INITIAL_RUN = "initial_run_of_application";
-    private static String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
     public static String JSON_BASE_URL = "";
     public static String settingsText = "No settings loaded.";
+    private static String KIOSKER_LATEST_EXCEPTION_ID = "kiosker_latest_exception_id";
+    private static String INITIAL_RUN = "initial_run_of_application";
+    private static String KIOSKER_ALLOW_SWITCHING_ID = "kiosker_allow_switching_id";
 
     public static Boolean getAllowHome(Activity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
-        return prefs.getBoolean(KIOSKER_ALLOW_HOME_ID, false);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_ALLOW_HOME_ID, Context.MODE_PRIVATE);
+        boolean allowHome = prefs.getBoolean(KIOSKER_ALLOW_HOME_ID, false);
+        return allowHome;
     }
 
     public static void setAllowHome(Activity activity, Boolean allowHome) {
         if (allowHome == null)
             allowHome = false;
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_ALLOW_HOME_ID, Context.MODE_PRIVATE).edit();
         editor.putBoolean(KIOSKER_ALLOW_HOME_ID, allowHome);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getDeviceId(Activity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_DEVICE_ID,Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_DEVICE_ID, "");
     }
 
     public static void setDeviceId(Activity activity, String deviceId) {
         if (deviceId == null)
             deviceId = "";
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_DEVICE_ID,Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_DEVICE_ID, deviceId);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getJsonBaseUrl(Activity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(JSON_BASE_URL_ID,Context.MODE_PRIVATE);
         return prefs.getString(JSON_BASE_URL_ID, "");
     }
 
     public static void setJsonBaseUrl(Activity activity, String baseUrl) {
         if (baseUrl == null)
             baseUrl = "";
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(JSON_BASE_URL_ID,Context.MODE_PRIVATE).edit();
         editor.putString(JSON_BASE_URL_ID, baseUrl);
         editor.commit();
         JSON_BASE_URL = baseUrl;
     }
 
     public static Boolean getInitialRun(Activity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(INITIAL_RUN,Context.MODE_PRIVATE);
         return prefs.getBoolean(INITIAL_RUN, true);
     }
 
     public static void setInitialRun(Activity activity, Boolean initialRun) {
         if (initialRun == null)
             initialRun = true;
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(INITIAL_RUN, Context.MODE_PRIVATE).edit();
         editor.putBoolean(INITIAL_RUN, initialRun);
-        editor.commit();
+        editor.apply();
     }
 
     public static Boolean isDeviceRooted() {
@@ -93,59 +97,59 @@ public class Constants {
     }
 
     public static Boolean getAllowSwitching(Activity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_ALLOW_SWITCHING_ID, Context.MODE_PRIVATE);
         return prefs.getBoolean(KIOSKER_ALLOW_SWITCHING_ID, false);
     }
 
     public static void setAllowSwitching(KioskerActivity activity, Boolean allowSwitching) {
         if (allowSwitching == null)
             allowSwitching = false;
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_ALLOW_SWITCHING_ID, Context.MODE_PRIVATE).edit();
         editor.putBoolean(KIOSKER_ALLOW_SWITCHING_ID, allowSwitching);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getPasswordHash(KioskerActivity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_PASSWORD_HASH_ID, Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_PASSWORD_HASH_ID, "");
     }
 
     public static void setPasswordHash(KioskerActivity activity, String passwordHash) {
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_PASSWORD_HASH_ID, Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_PASSWORD_HASH_ID, passwordHash);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getMasterPasswordHash(KioskerActivity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_MASTER_PASSWORD_HASH_ID, Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_MASTER_PASSWORD_HASH_ID, "");
     }
 
     public static void setMasterPasswordHash(KioskerActivity activity, String masterPasswordHash) {
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_MASTER_PASSWORD_HASH_ID, Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_MASTER_PASSWORD_HASH_ID, masterPasswordHash);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setPasswordSalt(KioskerActivity activity, String passwordSalt) {
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_PASSWORD_SALT_ID, Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_PASSWORD_SALT_ID, passwordSalt);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getPasswordSalt(KioskerActivity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_PASSWORD_SALT_ID, Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_PASSWORD_SALT_ID, "");
     }
 
     public static void setMasterPasswordSalt(KioskerActivity activity, String masterPasswordSalt) {
-        SharedPreferences.Editor editor = activity.getPreferences(Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_MASTER_PASSWORD_SALT_ID, Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_MASTER_PASSWORD_SALT_ID, masterPasswordSalt);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getMasterPasswordSalt(KioskerActivity activity) {
-        SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_MASTER_PASSWORD_SALT_ID, Context.MODE_PRIVATE);
         return prefs.getString(KIOSKER_MASTER_PASSWORD_SALT_ID, "");
     }
 
@@ -154,5 +158,27 @@ public class Constants {
                 = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    public static String getLatestError(Activity activity) {
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_LATEST_EXCEPTION_ID, Context.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_LATEST_EXCEPTION_ID, "");
+    }
+
+    public static void setLatestError(String errorMessage, Activity activity) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_LATEST_EXCEPTION_ID, Context.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_LATEST_EXCEPTION_ID, errorMessage);
+        editor.apply();
+    }
+
+    public static float getBrightness(Activity activity) {
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_BRIGHTNESS_ID, Context.MODE_PRIVATE);
+        return prefs.getFloat(KIOSKER_BRIGHTNESS_ID, 1.0f);
+    }
+
+    public static void setBrightness(Activity activity, float brightness) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_BRIGHTNESS_ID, Context.MODE_PRIVATE).edit();
+        editor.putFloat(KIOSKER_BRIGHTNESS_ID, brightness);
+        editor.apply();
     }
 }

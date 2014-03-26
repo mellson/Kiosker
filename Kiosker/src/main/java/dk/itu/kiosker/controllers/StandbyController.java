@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -35,7 +35,25 @@ class StandbyController {
         this.subscribers = subscribers;
     }
 
-    public void handleDimSettings(LinkedHashMap settings) {
+    public static void unDimDevice(KioskerActivity kioskerActivity) {
+        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
+        params.screenBrightness = Constants.getBrightness(kioskerActivity);
+        kioskerActivity.getWindow().setAttributes(params);
+    }
+
+    public static void dimDevice(KioskerActivity kioskerActivity) {
+        if (!kioskerActivity.currentlyScreenSaving) {
+            WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
+            params.screenBrightness = 0;
+            kioskerActivity.getWindow().setAttributes(params);
+        }
+    }
+
+    public void handleStandbySettings(LinkedHashMap settings) {
+        int tempBrightness = SettingsExtractor.getInteger(settings, "brightness");
+        float brightness = tempBrightness <= 0 ? 1.0f : (float) (tempBrightness / 100.0);
+        Constants.setBrightness(kioskerActivity, brightness);
+
         int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
         if (idlePeriodMins > 0) {
             idleDimObservable = Observable.timer(idlePeriodMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread());
@@ -95,20 +113,6 @@ class StandbyController {
         }
     }
 
-    public static void unDimDevice(KioskerActivity kioskerActivity) {
-        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-        params.screenBrightness = -1;
-        kioskerActivity.getWindow().setAttributes(params);
-    }
-
-    public static void dimDevice(KioskerActivity kioskerActivity) {
-        if (!kioskerActivity.currentlyScreenSaving) {
-            WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-            params.screenBrightness = 0;
-            kioskerActivity.getWindow().setAttributes(params);
-        }
-    }
-
     private Subscriber<Long> getStandbySubscriber(final Boolean startStandby) {
         Subscriber<Long> subscriber = new Subscriber<Long>() {
             @Override
@@ -119,7 +123,7 @@ class StandbyController {
             public void onError(Throwable e) {
                 String err = "Error while trying to start standby subscriber.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -159,7 +163,7 @@ class StandbyController {
             public void onError(Throwable e) {
                 String err = "Error while dimming device.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

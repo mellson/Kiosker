@@ -13,8 +13,8 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 19
-        versionCode 13
-        versionName "0.23"
+        versionCode 19
+        versionName "0.29"
     }
 
     compileOptions {
@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    compile files('libs/flurryAnalytics_3.4.0.jar')
     compile files('libs/libGoogleAnalyticsServices.jar')
     compile "com.squareup.retrofit:retrofit:+"
     compile "com.squareup.retrofit:converter-jackson:+"

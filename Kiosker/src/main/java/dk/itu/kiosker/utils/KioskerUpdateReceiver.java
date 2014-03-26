@@ -11,6 +11,7 @@ import dk.itu.kiosker.models.Constants;
 public class KioskerUpdateReceiver extends BroadcastReceiver {
     /**
      * Restart Kiosker after an update.
+     *
      * @param context
      * @param intent
      */

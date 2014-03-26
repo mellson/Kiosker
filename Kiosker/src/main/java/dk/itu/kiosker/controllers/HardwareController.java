@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 
 public class HardwareController {
@@ -14,12 +14,7 @@ public class HardwareController {
     private static Boolean hardwareSettingsParsed = false;
 
     public HardwareController(KioskerActivity kioskerActivity) {
-        this.kioskerActivity = kioskerActivity;
-    }
-
-    public void handleHardwareSettings(LinkedHashMap settings) {
-        Constants.setAllowHome(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
-        hardwareSettingsParsed = true;
+        HardwareController.kioskerActivity = kioskerActivity;
     }
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
@@ -41,7 +36,7 @@ public class HardwareController {
             } catch (Exception e) {
                 String err = "Error while trying to hide navigation ui.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
     }
@@ -60,7 +55,7 @@ public class HardwareController {
             } catch (Exception e) {
                 String err = "Error while trying to show navigation ui.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
     }
@@ -70,5 +65,10 @@ public class HardwareController {
             showNavigationUI();
         else
             hideNavigationUI();
+    }
+
+    public void handleHardwareSettings(LinkedHashMap settings) {
+        Constants.setAllowHome(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
+        hardwareSettingsParsed = true;
     }
 }

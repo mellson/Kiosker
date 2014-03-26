@@ -1,5 +1,6 @@
 package dk.itu.kiosker.models;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.KioskerActivity;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.JsonFetcher;
 
 public class LocalSettings {
@@ -19,7 +20,7 @@ public class LocalSettings {
      */
     public static void removeSafeSettings(KioskerActivity kioskerActivity) {
         Log.d(Constants.TAG, "Removing safe settings.");
-        SharedPreferences.Editor editor = kioskerActivity.getPreferences(kioskerActivity.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = kioskerActivity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.remove(Constants.SAFE_JSON);
         editor.commit();
     }
@@ -32,15 +33,15 @@ public class LocalSettings {
         } catch (JsonProcessingException e) {
             String err = "Error while saving safe settings.";
             Log.e(Constants.TAG, err, e);
-            GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+            CustomerErrorLogger.log(err, e, kioskerActivity);
         }
-        SharedPreferences.Editor editor = kioskerActivity.getPreferences(kioskerActivity.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = kioskerActivity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(Constants.SAFE_JSON, json);
         editor.commit();
     }
 
     public static LinkedHashMap getSafeJson(KioskerActivity kioskerActivity) {
-        SharedPreferences prefs = kioskerActivity.getPreferences(kioskerActivity.MODE_PRIVATE);
+        SharedPreferences prefs = kioskerActivity.getPreferences(Context.MODE_PRIVATE);
         String restoredJson = prefs.getString(Constants.SAFE_JSON, null);
         if (restoredJson != null) {
             try {
@@ -49,7 +50,7 @@ public class LocalSettings {
             } catch (IOException e) {
                 String err = "Error while loading safe settings.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
         }
         return new LinkedHashMap();

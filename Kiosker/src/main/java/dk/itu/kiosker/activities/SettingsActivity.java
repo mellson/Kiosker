@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flurry.android.FlurryAgent;
 import com.google.analytics.tracking.android.EasyTracker;
 
 import java.io.UnsupportedEncodingException;
@@ -27,6 +28,7 @@ import java.util.Formatter;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.FlurryCredentials;
 
 
 public class SettingsActivity extends Activity {
@@ -78,6 +80,7 @@ public class SettingsActivity extends Activity {
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                HardwareController.showNavigationUI();
                 startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS), 0);
             }
         });
@@ -189,39 +192,6 @@ public class SettingsActivity extends Activity {
         }).show();
     }
 
-    private static String encryptPassword(String password)
-    {
-        String sha1 = "";
-        try
-        {
-            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-            crypt.reset();
-            crypt.update(password.getBytes("UTF-8"));
-            sha1 = byteToHex(crypt.digest());
-        }
-        catch(NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
-        catch(UnsupportedEncodingException e)
-        {
-            e.printStackTrace();
-        }
-        return sha1;
-    }
-
-    private static String byteToHex(final byte[] hash)
-    {
-        Formatter formatter = new Formatter();
-        for (byte b : hash)
-        {
-            formatter.format("%02x", b);
-        }
-        String result = formatter.toString();
-        formatter.close();
-        return result;
-    }
-
     @Override
     public void finish() {
         // Prepare data intent
@@ -290,7 +260,7 @@ public class SettingsActivity extends Activity {
     public void restartApp(View v) {
         Intent intent = new Intent(this, KioskerActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra("Kill Kiosker", false);
+        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, false);
         startActivity(intent);
         finish();
     }
@@ -298,7 +268,7 @@ public class SettingsActivity extends Activity {
     public void killApp(View v) {
         Intent intent = new Intent(this, KioskerActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra("Kill Kiosker", true);
+        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, true);
         startActivity(intent);
         finish();
     }
@@ -306,12 +276,41 @@ public class SettingsActivity extends Activity {
     @Override
     public void onStart() {
         super.onStart();
+        HardwareController.handleNavigationUI();
+        FlurryAgent.setUserId(Constants.getDeviceId(this));
+        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
         EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        FlurryAgent.onEndSession(this);
         EasyTracker.getInstance(this).activityStop(this);
+    }
+
+    private static String encryptPassword(String password) {
+        String sha1 = "";
+        try {
+            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+            crypt.reset();
+            crypt.update(password.getBytes("UTF-8"));
+            sha1 = byteToHex(crypt.digest());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return sha1;
+    }
+
+    private static String byteToHex(final byte[] hash) {
+        Formatter formatter = new Formatter();
+        for (byte b : hash) {
+            formatter.format("%02x", b);
+        }
+        String result = formatter.toString();
+        formatter.close();
+        return result;
     }
 }

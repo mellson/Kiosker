@@ -1,11 +1,13 @@
 package dk.itu.kiosker.activities;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.flurry.android.FlurryAgent;
 import com.google.analytics.tracking.android.EasyTracker;
 
 import java.io.BufferedReader;
@@ -16,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.FlurryCredentials;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -56,7 +59,7 @@ public class LogActivity extends Activity {
                 public void onError(Throwable e) {
                     String err = "Error while updating log update text.";
                     Log.e(Constants.TAG, err, e);
-                    GoogleAnalyticsCustomerErrorLogger.log(err, e, LogActivity.this);
+                    CustomerErrorLogger.log(err, e, LogActivity.this);
                 }
 
                 @Override
@@ -86,6 +89,12 @@ public class LogActivity extends Activity {
                                 e.printStackTrace();
                             }
                             updateSubscriber.unsubscribe();
+                            String latestException = Constants.getLatestError(LogActivity.this);
+                            if (!latestException.isEmpty()) {
+                                TextView tv2 = (TextView) findViewById(R.id.exceptionsTextView);
+                                tv2.setTextColor(Color.RED);
+                                tv2.setText(latestException);
+                            }
                             tv.setText(log);
                         }
                     });
@@ -99,6 +108,8 @@ public class LogActivity extends Activity {
         super.onStart();
         updateLog();
         HardwareController.showNavigationUI();
+        FlurryAgent.setUserId(Constants.getDeviceId(this));
+        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
         EasyTracker.getInstance(this).activityStart(this);
     }
 
@@ -106,6 +117,7 @@ public class LogActivity extends Activity {
     public void onStop() {
         super.onStop();
         HardwareController.handleNavigationUI();
+        FlurryAgent.onEndSession(this);
         EasyTracker.getInstance(this).activityStop(this);
     }
 }

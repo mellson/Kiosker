@@ -3,7 +3,8 @@ package dk.itu.kiosker.utils;
 public class WebHelper {
     /**
      * Translate a layout int to a float weight value used to distribute web views on the screen.
-     * @param layout the layout to transform. 0 equals full screen.
+     *
+     * @param layout      the layout to transform. 0 equals full screen.
      * @param mainWebPage is this a translation for the main view?
      * @return a float value indicating how much screen estate a view should take. 0.1f for 10% etc.
      */

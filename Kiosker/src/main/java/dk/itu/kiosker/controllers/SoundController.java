@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -96,7 +96,7 @@ class SoundController {
             public void onError(Throwable e) {
                 String err = "Error while setting volume.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

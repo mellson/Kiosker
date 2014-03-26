@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.web.WebPage;
 import rx.Observable;
@@ -20,11 +20,11 @@ import rx.functions.Action1;
 public class ScreenSaverController {
     private final KioskerActivity kioskerActivity;
     private final ArrayList<Subscriber> subscribers;
+    private final WebController webController;
     private int screenSaveLengthMins;
     private ArrayList<WebPage> screenSaverWebPages;
     private Observable<Long> screenSaverObservable;
     private Subscriber<Long> screenSaverSubscriber;
-    private final WebController webController;
 
     public ScreenSaverController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers, WebController webController) {
         this.kioskerActivity = kioskerActivity;
@@ -89,7 +89,7 @@ public class ScreenSaverController {
             public void onError(Throwable e) {
                 String err = "Error while screen saving.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override

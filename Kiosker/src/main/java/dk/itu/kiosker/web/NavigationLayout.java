@@ -98,7 +98,7 @@ public class NavigationLayout extends LinearLayout {
             }
 
             titleSpinner = new Spinner(kioskerActivity);
-            titleSpinner.setPadding(0,0,0,0);
+            titleSpinner.setPadding(0, 0, 0, 0);
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(kioskerActivity, android.R.layout.simple_spinner_dropdown_item, siteTitles);
             titleSpinner.setAdapter(spinnerArrayAdapter);
             titleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.flurry.android.FlurryAgent;
 import com.google.analytics.tracking.android.EasyTracker;
 
 import java.util.LinkedHashMap;
@@ -21,7 +22,8 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.FlurryCredentials;
 import dk.itu.kiosker.utils.IntentHelper;
 import rx.Observable;
 import rx.Subscriber;
@@ -40,14 +42,16 @@ public class KioskerActivity extends Activity {
     //region Create methods.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if( getIntent().getBooleanExtra("Kill Kiosker", false)){
+        super.onCreate(savedInstanceState);
+        Log.d(Constants.TAG, "onCreate() called");
+
+        // Check if we should kill the app.
+        if (getIntent().getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
             HardwareController.showNavigationUI();
             finish();
         }
 
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(Constants.TAG, "onCreate() called");
         setupApplication();
     }
 
@@ -71,9 +75,13 @@ public class KioskerActivity extends Activity {
      * If there is no internet it will retry after 5 seconds.
      */
     public void refreshDevice() {
-        if (Constants.getInitialRun(this)) return;
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
+        if (Constants.getInitialRun(this)) {
+            InitialSetup.start(this);
+            return;
+        }
+
         // Check if we have started a subscriber for auto retrying internet connectivity.
         if (noInternetSubscriber != null && !noInternetSubscriber.isUnsubscribed())
             noInternetSubscriber.unsubscribe();
@@ -83,13 +91,16 @@ public class KioskerActivity extends Activity {
             statusUpdater.updateSubStatus("Please refresh from settings. Auto retry in 2 mins.");
             noInternetSubscriber = new Subscriber<Long>() {
                 @Override
-                public void onCompleted() {}
+                public void onCompleted() {
+                }
+
                 @Override
                 public void onError(Throwable e) {
                     String err = "Error while retrying internet connection.";
                     Log.e(Constants.TAG, err, e);
-                    GoogleAnalyticsCustomerErrorLogger.log(err, e, KioskerActivity.this);
+                    CustomerErrorLogger.log(err, e, KioskerActivity.this);
                 }
+
                 @Override
                 public void onNext(Long aLong) {
                     refreshDevice();
@@ -137,9 +148,12 @@ public class KioskerActivity extends Activity {
         Boolean resetDevice = data.getBooleanExtra(Constants.KIOSKER_RESET_DEVICE_ID, false);
         if (resetDevice) {
             LocalSettings.removeSafeSettings(this);
+            Constants.setDeviceId(this, "");
+            Constants.setJsonBaseUrl(this, "");
+            Constants.setInitialRun(this, true);
+            Constants.setLatestError("", this);
             cleanUpMainView();
             InitialSetup.start(this);
-            return;
         }
     }
     //endregion
@@ -168,15 +182,16 @@ public class KioskerActivity extends Activity {
             settingsController.stopScheduledTasks();
         }
         cleanUpMainView();
+        FlurryAgent.onEndSession(this);
         EasyTracker.getInstance(this).activityStop(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(Constants.TAG, "onResume() called");
         settingsController.handleOnResume();
         handleNavigationUI();
-        Log.d(Constants.TAG, "onResume() called");
     }
 
 
@@ -186,6 +201,8 @@ public class KioskerActivity extends Activity {
         Log.d(Constants.TAG, "onStart() called");
         setFullScreenImmersiveMode();
         refreshDevice();
+        FlurryAgent.setUserId(Constants.getDeviceId(this));
+        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
         EasyTracker.getInstance(this).activityStart(this);
     }
 

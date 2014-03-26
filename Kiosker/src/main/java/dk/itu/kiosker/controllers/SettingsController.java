@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
-import dk.itu.kiosker.utils.GoogleAnalyticsCustomerErrorLogger;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import rx.Observable;
 import rx.Subscriber;
@@ -47,7 +47,7 @@ public class SettingsController {
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);
-        standbyController.handleDimSettings(settings);
+        standbyController.handleStandbySettings(settings);
         hardwareController.handleHardwareSettings(settings);
 
         // Save these settings as the safe defaults.
@@ -66,7 +66,10 @@ public class SettingsController {
             kioskerActivity.removeStatusTextViews();
 
         // When all the settings have been parsed check to see if we should hide the ui.
-        hardwareController.hideNavigationUI();
+        HardwareController.handleNavigationUI();
+
+        // Set the user provided brightness
+        StandbyController.unDimDevice(kioskerActivity);
     }
 
     /**
@@ -90,7 +93,7 @@ public class SettingsController {
             public void onError(Throwable e) {
                 String err = "Error while starting delayed tasks.";
                 Log.e(Constants.TAG, err, e);
-                GoogleAnalyticsCustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
             }
 
             @Override
@@ -143,14 +146,6 @@ public class SettingsController {
 
     public void handleNavigationUI() {
         hardwareController.handleNavigationUI();
-    }
-
-    public void showNavigationUI() {
-        hardwareController.showNavigationUI();
-    }
-
-    public void hideNavigationUI() {
-        hardwareController.hideNavigationUI();
     }
 
     public void keepScreenOn() {

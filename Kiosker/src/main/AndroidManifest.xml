@@ -24,19 +24,21 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <!--Receiver to handle updates from play store -->
-        <receiver android:name="dk.itu.kiosker.utils.KioskerUpdateReceiver" >
-            <intent-filter android:priority="1000" >
+        <receiver android:name="dk.itu.kiosker.utils.KioskerUpdateReceiver">
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" android:path="dk.itu.kiosker"/>
+                <data
+                    android:path="dk.itu.kiosker"
+                    android:scheme="package" />
             </intent-filter>
         </receiver>
+
         <activity
             android:name=".activities.KioskerActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.HOME" />
