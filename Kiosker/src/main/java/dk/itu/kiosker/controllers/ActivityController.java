@@ -24,7 +24,7 @@ public class ActivityController {
      */
     public static void handleMainActivityGoingAway(final KioskerActivity kioskerActivity) {
         if (!kioskerActivity.currentlyInStandbyPeriod || !showingAllowedActivity(kioskerActivity))
-            getCountdownString().delay(1, TimeUnit.SECONDS).subscribe(new Subscriber<String>() {
+            getCountdownString().delay(1, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<String>() {
                 @Override
                 public void onCompleted() {
                     if (!showingAllowedActivity(kioskerActivity))
