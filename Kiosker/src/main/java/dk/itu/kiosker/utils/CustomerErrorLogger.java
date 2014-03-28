@@ -2,6 +2,7 @@ package dk.itu.kiosker.utils;
 
 import android.app.Activity;
 
+import com.crashlytics.android.Crashlytics;
 import com.flurry.android.FlurryAgent;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.MapBuilder;
@@ -28,6 +29,13 @@ public class CustomerErrorLogger {
         Constants.setLatestError(errorMessage, activity);
         logToGoogleAnalytics(errorMessage, e, activity);
         logToFlurry(err, errorMessage, activity, e);
+        logToCrashlytics(e, activity, errorMessage);
+    }
+
+    public static void logToCrashlytics(Throwable e, Activity activity, String errorMessage) {
+        Crashlytics.setUserIdentifier(Constants.getDeviceId(activity));
+        Crashlytics.log(errorMessage);
+        Crashlytics.logException(e);
     }
 
     public static void logToFlurry(String err, String message, Activity activity, Throwable e) {
