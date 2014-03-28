@@ -53,6 +53,7 @@
             android:name="dk.itu.kiosker.activities.LogActivity"
             android:label="@string/app_name_settings"
             android:screenOrientation="portrait" />
+        <meta-data android:name="com.crashlytics.ApiKey" android:value="@string/crashlytics_apikey"/>
     </application>
 
 </manifest>

@@ -7,3 +7,5 @@ signing.properties
 Kiosker/src/main/res/values/analytics.xml
 
 Kiosker/src/main/java/dk/itu/kiosker/utils/FlurryCredentials.java
+
+Kiosker/src/main/res/values/crashlytics_apikey.xml
