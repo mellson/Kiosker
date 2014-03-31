@@ -10,8 +10,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import com.crashlytics.android.Crashlytics;
-import com.flurry.android.FlurryAgent;
-import com.google.analytics.tracking.android.EasyTracker;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +22,6 @@ import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
-import dk.itu.kiosker.utils.FlurryCredentials;
 import dk.itu.kiosker.utils.IntentHelper;
 import rx.Observable;
 import rx.Subscriber;
@@ -45,6 +42,7 @@ public class KioskerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Crashlytics.start(this);
+        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
 
         Log.d(Constants.TAG, "onCreate() called");
 
@@ -185,8 +183,8 @@ public class KioskerActivity extends Activity {
             settingsController.stopScheduledTasks();
         }
         cleanUpMainView();
-        FlurryAgent.onEndSession(this);
-        EasyTracker.getInstance(this).activityStop(this);
+//        FlurryAgent.onEndSession(this);
+//        EasyTracker.getInstance(this).activityStop(this);
     }
 
     @Override
@@ -204,9 +202,9 @@ public class KioskerActivity extends Activity {
         Log.d(Constants.TAG, "onStart() called");
         setFullScreenImmersiveMode();
         refreshDevice();
-        FlurryAgent.setUserId(Constants.getDeviceId(this));
-        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
-        EasyTracker.getInstance(this).activityStart(this);
+//        FlurryAgent.setUserId(Constants.getDeviceId(this));
+//        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
+//        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override

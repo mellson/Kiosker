@@ -44,7 +44,7 @@ class StandbyController {
     public static void dimDevice(KioskerActivity kioskerActivity) {
         if (!kioskerActivity.currentlyScreenSaving) {
             WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-            params.screenBrightness = 0;
+            params.screenBrightness = Constants.getDimmedBrightness(kioskerActivity);
             kioskerActivity.getWindow().setAttributes(params);
         }
     }
@@ -53,6 +53,10 @@ class StandbyController {
         int tempBrightness = SettingsExtractor.getInteger(settings, "brightness");
         float brightness = tempBrightness <= 0 ? 1.0f : (float) (tempBrightness / 100.0);
         Constants.setBrightness(kioskerActivity, brightness);
+
+        tempBrightness = SettingsExtractor.getInteger(settings, "dimmedBrightness");
+        float dimmedBrightness = tempBrightness <= 0 ? 0.7f : (float) (tempBrightness / 100.0);
+        Constants.setDimmedBrightness(kioskerActivity, dimmedBrightness);
 
         int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
         if (idlePeriodMins > 0) {
@@ -170,10 +174,6 @@ class StandbyController {
             public void onNext(Long aLong) {
                 Log.d(Constants.TAG, "Idle time started.");
                 dimDevice(kioskerActivity);
-                if (!kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving)
-                    kioskerActivity.backToMainActivity();
-                if (kioskerActivity.currentlyInStandbyPeriod)
-                    removeKeepScreenOn();
             }
         };
         subscribers.add(idleDimSubscriber);

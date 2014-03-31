@@ -32,6 +32,7 @@ public class NavigationLayout extends LinearLayout {
     private final WebView webView;
     private final Observable<Long> navigationHideObservable = Observable.timer(Constants.NAVIGATION_ONSCREEN_TIME_SECONDS, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread());
     private final LinearLayout navigationControls;
+    private final KioskerActivity kioskerActivity;
     private Spinner titleSpinner;
     private boolean firstTimeHere = true;
     // if this is a sites web view and user is allowed to switch sites we should show the navigation ui immediately.
@@ -43,6 +44,7 @@ public class NavigationLayout extends LinearLayout {
         super(kioskerActivity);
         this.webView = webView;
         this.setGravity(Gravity.CENTER_VERTICAL);
+        this.kioskerActivity = kioskerActivity;
 
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         navigationControls = new LinearLayout(kioskerActivity);
@@ -129,6 +131,7 @@ public class NavigationLayout extends LinearLayout {
         // The first time a user tries to navigate we set the home url to the current one on display.
         if (firstTimeHere) {
             homeUrl = webView.getUrl();
+            Constants.setHomeUrl(kioskerActivity, homeUrl);
             firstTimeHere = false;
         }
         if (allowSwitching || !webView.getUrl().equals(homeUrl)) {

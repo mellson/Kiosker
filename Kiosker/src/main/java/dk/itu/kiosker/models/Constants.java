@@ -20,8 +20,10 @@ public class Constants {
     public static String KIOSKER_RESET_DEVICE_ID = "resetDevice";
     public static String SAFE_JSON = "kiosker_safe_json";
     public static String KIOSKER_KILL_APP_ID = "Kill Kiosker";
+    private static String KIOSKER_HOME_URL_ID = "kiosker_home_url_id";
     public static String KIOSKER_ALLOW_HOME_ID = "kiosker_allow_home_id";
     public static String KIOSKER_DEVICE_ID = "kiosker_device_id";
+    private static String KIOSKER_DIMMED_BRIGHTNESS_ID = "kiosker_dimmed_brightness";
     private static String KIOSKER_BRIGHTNESS_ID = "kiosker_brightness_id";
     public static String KIOSKER_WRONG_OR_NO_PASSWORD_ID = "kiosker_wrong_or_no_password_id";
     public static String KIOSKER_PASSWORD_HASH_ID = "kiosker_password_hash_id";
@@ -179,6 +181,28 @@ public class Constants {
     public static void setBrightness(Activity activity, float brightness) {
         SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_BRIGHTNESS_ID, Context.MODE_PRIVATE).edit();
         editor.putFloat(KIOSKER_BRIGHTNESS_ID, brightness);
+        editor.apply();
+    }
+
+    public static float getDimmedBrightness(Activity activity) {
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_DIMMED_BRIGHTNESS_ID, Context.MODE_PRIVATE);
+        return prefs.getFloat(KIOSKER_DIMMED_BRIGHTNESS_ID, 1.0f);
+    }
+
+    public static void setDimmedBrightness(Activity activity, float brightness) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_DIMMED_BRIGHTNESS_ID, Context.MODE_PRIVATE).edit();
+        editor.putFloat(KIOSKER_DIMMED_BRIGHTNESS_ID, brightness);
+        editor.apply();
+    }
+
+    public static String getHomeUrl(Activity activity) {
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_HOME_URL_ID, Context.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_HOME_URL_ID, "");
+    }
+
+    public static void setHomeUrl(Activity activity, String homeUrl) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_HOME_URL_ID, Context.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_HOME_URL_ID, homeUrl);
         editor.apply();
     }
 }

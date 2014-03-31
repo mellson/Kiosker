@@ -102,6 +102,7 @@ public class SettingsController {
                 kioskerActivity.userIsInteractingWithDevice = false;
                 webController.startScreenSaverSubscription();
                 webController.startCycleSecondarySubscription();
+                webController.startResetToHomeSubscription();
                 standbyController.startDimSubscription();
                 if (refreshController.deviceShouldBeReset)
                     refreshController.startShortRefreshSubscription();
@@ -123,6 +124,7 @@ public class SettingsController {
     public void stopScheduledTasks() {
         webController.stopScreenSaverSubscription();
         webController.stopCycleSecondarySubscription();
+        webController.stopResetToHomeSubscription();
         standbyController.stopDimSubscription();
         refreshController.stopShortRefreshSubscription();
     }

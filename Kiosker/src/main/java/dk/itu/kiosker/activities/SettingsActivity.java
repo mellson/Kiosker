@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +19,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.flurry.android.FlurryAgent;
-import com.google.analytics.tracking.android.EasyTracker;
-
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,7 +27,6 @@ import java.util.Formatter;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.FlurryCredentials;
 
 
 public class SettingsActivity extends Activity {
@@ -150,7 +148,10 @@ public class SettingsActivity extends Activity {
         wrongOrNoPasswordEntered = true;
 
         // Set an EditText view to get user input
-        final EditText[] input = {new EditText(this)};
+        EditText passwordField = new EditText(this);
+        passwordField.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        passwordField.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        final EditText[] input = {passwordField};
         final Boolean[] okToEnter = {false};
         final Boolean[] hasEnteredPassword = {false};
         new AlertDialog.Builder(this)
@@ -277,16 +278,16 @@ public class SettingsActivity extends Activity {
     public void onStart() {
         super.onStart();
         HardwareController.handleNavigationUI();
-        FlurryAgent.setUserId(Constants.getDeviceId(this));
-        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
-        EasyTracker.getInstance(this).activityStart(this);
+//        FlurryAgent.setUserId(Constants.getDeviceId(this));
+//        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
+//        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        FlurryAgent.onEndSession(this);
-        EasyTracker.getInstance(this).activityStop(this);
+//        FlurryAgent.onEndSession(this);
+//        EasyTracker.getInstance(this).activityStop(this);
     }
 
     private static String encryptPassword(String password) {

@@ -49,6 +49,9 @@ public class WebController {
     private int secondaryCycleIndex;
     private Observable<Long> secondaryCycleObservable;
     private Subscriber<Long> reloadSubscriber;
+    private int resetToHomeMins;
+    private int defaultResetToHomeMins = 2;
+    private Subscriber<Long> resetToHomeSubscriber;
 
     public WebController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers) {
         this.kioskerActivity = kioskerActivity;
@@ -61,6 +64,10 @@ public class WebController {
     public void handleWebSettings(LinkedHashMap settings) {
         reloadPeriodMins = SettingsExtractor.getInteger(settings, "reloadPeriodMins");
         errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
+
+        resetToHomeMins = SettingsExtractor.getInteger(settings, "resetToHomeMins");
+        resetToHomeMins = resetToHomeMins <= 0 ? defaultResetToHomeMins : resetToHomeMins;
+        startResetToHomeSubscription();
 
         kioskerActivity.cleanUpMainView();
 
@@ -361,6 +368,52 @@ public class WebController {
         if (secondaryCycleSubscriber != null && !secondaryCycleSubscriber.isUnsubscribed()) {
             secondaryCycleSubscriber.unsubscribe();
             subscribers.remove(secondaryCycleSubscriber);
+        }
+    }
+
+    public void startResetToHomeSubscription() {
+        if (resetToHomeSubscriber != null && !resetToHomeSubscriber.isUnsubscribed()) {
+            resetToHomeSubscriber.unsubscribe();
+            subscribers.remove(resetToHomeSubscriber);
+        }
+
+        resetToHomeSubscriber = new Subscriber<Long>() {
+            @Override
+            public void onCompleted() {
+                subscribers.remove(resetToHomeSubscriber);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                String err = "Error while resetting to home.";
+                Log.e(Constants.TAG, err, e);
+                CustomerErrorLogger.log(err, e, kioskerActivity);
+            }
+
+            @Override
+            public void onNext(Long l) {
+                if (!webViews.isEmpty() && !showingHomeUrl() && !kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving) {
+                    Log.d(Constants.TAG, "Resetting to home.");
+                    kioskerActivity.backToMainActivity();
+                } else {
+                    unsubscribe();
+                    subscribers.remove(resetToHomeSubscriber);
+                }
+            }
+        };
+        Observable.timer(resetToHomeMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(resetToHomeSubscriber);
+        // Add our subscriber to subscribers so that we can cancel it later
+        subscribers.add(resetToHomeSubscriber);
+    }
+
+    private boolean showingHomeUrl() {
+        return webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
+    }
+
+    public void stopResetToHomeSubscription() {
+        if (resetToHomeSubscriber != null && !resetToHomeSubscriber.isUnsubscribed()) {
+            resetToHomeSubscriber.unsubscribe();
+            subscribers.remove(resetToHomeSubscriber);
         }
     }
 }
