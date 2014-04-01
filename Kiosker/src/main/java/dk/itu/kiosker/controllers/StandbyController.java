@@ -125,9 +125,7 @@ class StandbyController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while trying to start standby subscriber.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while trying to start standby subscriber.", e, kioskerActivity);
             }
 
             @Override
@@ -140,9 +138,10 @@ class StandbyController {
                 } else {
                     Log.d(Constants.TAG, "Ending standby.");
                     kioskerActivity.currentlyInStandbyPeriod = false;
-                    kioskerActivity.startScheduledTasks();
                     wakeDevice();
                     unDimDevice(kioskerActivity);
+                    Constants.killApp(kioskerActivity);
+                    Constants.restartApp(kioskerActivity);
                 }
             }
         };
@@ -165,9 +164,7 @@ class StandbyController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while dimming device.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while dimming device.", e, kioskerActivity);
             }
 
             @Override
@@ -220,14 +217,16 @@ class StandbyController {
     void createWakeLocks() {
         PowerManager powerManager = (PowerManager) kioskerActivity.getSystemService(Context.POWER_SERVICE);
         fullWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), Constants.TAG + "FULL WAKE LOCK");
+        fullWakeLock.setReferenceCounted(false);
         partialWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.TAG + " PARTIAL WAKE LOCK");
+        partialWakeLock.setReferenceCounted(false);
     }
 
     /**
      * Wakes the device from sleep and sets the screen to never timeout.
      */
     void wakeDevice() {
-        fullWakeLock.acquire();
+        if ((fullWakeLock != null) && !fullWakeLock.isHeld()) fullWakeLock.acquire();
         KeyguardManager keyguardManager = (KeyguardManager) kioskerActivity.getSystemService(Context.KEYGUARD_SERVICE);
         KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
         keyguardLock.disableKeyguard();
@@ -244,7 +243,7 @@ class StandbyController {
     }
 
     public void handleOnPause() {
-        partialWakeLock.acquire();
+        if ((partialWakeLock != null) && !partialWakeLock.isHeld()) partialWakeLock.acquire();
     }
     //endregion
 }

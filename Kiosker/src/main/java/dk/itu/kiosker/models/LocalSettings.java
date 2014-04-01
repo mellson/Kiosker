@@ -31,9 +31,7 @@ public class LocalSettings {
             JsonFetcher jsonFetcher = new JsonFetcher();
             json = jsonFetcher.mapper.writeValueAsString(settings);
         } catch (JsonProcessingException e) {
-            String err = "Error while saving safe settings.";
-            Log.e(Constants.TAG, err, e);
-            CustomerErrorLogger.log(err, e, kioskerActivity);
+            CustomerErrorLogger.log("Error while saving safe settings.", e, kioskerActivity);
         }
         SharedPreferences.Editor editor = kioskerActivity.getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(Constants.SAFE_JSON, json);
@@ -48,9 +46,7 @@ public class LocalSettings {
                 JsonFetcher jsonFetcher = new JsonFetcher();
                 return jsonFetcher.mapper.readValue(restoredJson, LinkedHashMap.class);
             } catch (IOException e) {
-                String err = "Error while loading safe settings.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while loading safe settings.", e, kioskerActivity);
             }
         }
         return new LinkedHashMap();

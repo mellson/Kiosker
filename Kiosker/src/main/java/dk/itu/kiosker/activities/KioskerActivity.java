@@ -23,6 +23,8 @@ import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
+import dk.itu.kiosker.utils.Pinger;
+import dk.itu.kiosker.utils.WifiController;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -41,10 +43,10 @@ public class KioskerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(Constants.TAG, "onCreate() called");
         Crashlytics.start(this);
         Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
-
-        Log.d(Constants.TAG, "onCreate() called");
+        Pinger.start(this);
 
         // Check if we should kill the app.
         if (getIntent().getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
@@ -87,9 +89,10 @@ public class KioskerActivity extends Activity {
         if (noInternetSubscriber != null && !noInternetSubscriber.isUnsubscribed())
             noInternetSubscriber.unsubscribe();
         settingsController.unsubscribeScheduledTasks();
+
         if (!Constants.isNetworkAvailable(this)) {
             statusUpdater.updateMainStatus("No internet");
-            statusUpdater.updateSubStatus("Please refresh from settings. Auto retry in 2 mins.");
+            statusUpdater.updateSubStatus("Please refresh from settings. Auto retry in 30 seconds.");
             noInternetSubscriber = new Subscriber<Long>() {
                 @Override
                 public void onCompleted() {
@@ -97,9 +100,7 @@ public class KioskerActivity extends Activity {
 
                 @Override
                 public void onError(Throwable e) {
-                    String err = "Error while retrying internet connection.";
-                    Log.e(Constants.TAG, err, e);
-                    CustomerErrorLogger.log(err, e, KioskerActivity.this);
+                    CustomerErrorLogger.log("Error while retrying internet connection.", e, KioskerActivity.this);
                 }
 
                 @Override
@@ -107,7 +108,12 @@ public class KioskerActivity extends Activity {
                     refreshDevice();
                 }
             };
-            Observable.timer(2, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(noInternetSubscriber);
+            String ssid = Constants.getSSID(this);
+            if (!ssid.isEmpty()) {
+                WifiController wifiController = new WifiController(this);
+                wifiController.connectToWifi(ssid);
+            }
+            Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(noInternetSubscriber);
             createSecretMenuButton();
         } else {
             statusUpdater.updateMainStatus("Downloading settings");

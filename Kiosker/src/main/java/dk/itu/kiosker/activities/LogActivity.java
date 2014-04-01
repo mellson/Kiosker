@@ -53,9 +53,7 @@ public class LogActivity extends Activity {
 
                 @Override
                 public void onError(Throwable e) {
-                    String err = "Error while updating log update text.";
-                    Log.e(Constants.TAG, err, e);
-                    CustomerErrorLogger.log(err, e, LogActivity.this);
+                    CustomerErrorLogger.log("Error while updating log update text.", e, LogActivity.this);
                 }
 
                 @Override

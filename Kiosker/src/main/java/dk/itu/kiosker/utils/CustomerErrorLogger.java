@@ -1,6 +1,7 @@
 package dk.itu.kiosker.utils;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -14,6 +15,8 @@ import dk.itu.kiosker.models.Constants;
 
 public class CustomerErrorLogger {
     public static void log(String err, Throwable e, Activity activity) {
+        Log.e(Constants.TAG, err, e);
+
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);

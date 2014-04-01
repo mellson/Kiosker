@@ -1,7 +1,5 @@
 package dk.itu.kiosker.controllers;
 
-import android.util.Log;
-
 import java.util.LinkedHashMap;
 
 import dk.itu.kiosker.activities.KioskerActivity;
@@ -34,9 +32,7 @@ public class HardwareController {
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
             } catch (Exception e) {
-                String err = "Error while trying to hide navigation ui.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while trying to hide navigation ui.", e, kioskerActivity);
             }
         }
     }
@@ -53,9 +49,7 @@ public class HardwareController {
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
             } catch (Exception e) {
-                String err = "Error while trying to show navigation ui.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while trying to show navigation ui.", e, kioskerActivity);
             }
         }
     }

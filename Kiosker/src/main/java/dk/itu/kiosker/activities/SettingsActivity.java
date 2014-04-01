@@ -259,18 +259,12 @@ public class SettingsActivity extends Activity {
     }
 
     public void restartApp(View v) {
-        Intent intent = new Intent(this, KioskerActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, false);
-        startActivity(intent);
+        Constants.restartApp(this);
         finish();
     }
 
     public void killApp(View v) {
-        Intent intent = new Intent(this, KioskerActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, true);
-        startActivity(intent);
+        Constants.killApp(this);
         finish();
     }
 

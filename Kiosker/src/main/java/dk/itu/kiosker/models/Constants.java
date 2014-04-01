@@ -2,6 +2,7 @@ package dk.itu.kiosker.models;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,6 +14,8 @@ import dk.itu.kiosker.utils.RootHelper;
 public class Constants {
     public static long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
     public static long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
+    public static final CharSequence KIOSKER_PING_URL = "http://clintio.us/kiosker/configs/base.json";
+    private static final String KIOSKER_SSID_ID = "kiosker_ssid_id";
     public static String TAG = "Kiosker";
     public static String BASE_SETTINGS = "base";
     public static String JSON_BASE_URL_ID = "json_base_url";
@@ -204,5 +207,30 @@ public class Constants {
         SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_HOME_URL_ID, Context.MODE_PRIVATE).edit();
         editor.putString(KIOSKER_HOME_URL_ID, homeUrl);
         editor.apply();
+    }
+
+    public static void killApp(Context context) {
+        Intent intent = new Intent(context, KioskerActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, true);
+        context.startActivity(intent);
+    }
+
+    public static void restartApp(Context context) {
+        Intent intent = new Intent(context, KioskerActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(Constants.KIOSKER_KILL_APP_ID, false);
+        context.startActivity(intent);
+    }
+
+    public static void setSSID(Activity activity, String ssid) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(KIOSKER_SSID_ID, Context.MODE_PRIVATE).edit();
+        editor.putString(KIOSKER_SSID_ID, ssid);
+        editor.apply();
+    }
+
+    public static String getSSID(Activity activity) {
+        SharedPreferences prefs = activity.getSharedPreferences(KIOSKER_SSID_ID, Context.MODE_PRIVATE);
+        return prefs.getString(KIOSKER_SSID_ID, "");
     }
 }

@@ -74,6 +74,7 @@
     <orderEntry type="library" exported="" name="jackson-databind-2.3.2" level="project" />
     <orderEntry type="library" exported="" name="rxjava-core-0.17.2" level="project" />
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
+    <orderEntry type="library" exported="" name="http-request-5.6" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.3.0" level="project" />
     <orderEntry type="library" exported="" name="rxjava-android-0.17.2" level="project" />
     <orderEntry type="library" exported="" name="libGoogleAnalyticsServices" level="project" />

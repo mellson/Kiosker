@@ -63,13 +63,9 @@ public class OnlineSettings {
                 }
 
                 if (error != null) {
-                    String err = "Error while getting base json settings because " + errorReason + ".";
-                    Log.e(Constants.TAG, err, error);
-                    CustomerErrorLogger.log(err, error, kioskerActivity);
+                    CustomerErrorLogger.log("Error while getting base json settings because " + errorReason + ".", error, kioskerActivity);
                 } else {
-                    String err = "Error while getting base json settings because " + errorReason + ".";
-                    Log.e(Constants.TAG, err, throwable);
-                    CustomerErrorLogger.log(err, throwable, kioskerActivity);
+                    CustomerErrorLogger.log("Error while getting base json settings because " + errorReason + ".", throwable, kioskerActivity);
 
                 }
 

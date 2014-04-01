@@ -33,9 +33,7 @@ public class ActivityController {
 
                 @Override
                 public void onError(Throwable e) {
-                    String err = "Error while trying to go create countdown toasts.";
-                    Log.e(Constants.TAG, err, e);
-                    CustomerErrorLogger.log(err, e, kioskerActivity);
+                    CustomerErrorLogger.log("Error while trying to go create countdown toasts.", e, kioskerActivity);
                 }
 
                 @Override

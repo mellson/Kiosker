@@ -22,6 +22,7 @@ import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
+import dk.itu.kiosker.web.KioskerWebChromeClient;
 import dk.itu.kiosker.web.KioskerWebViewClient;
 import dk.itu.kiosker.web.NavigationLayout;
 import dk.itu.kiosker.web.WebPage;
@@ -135,9 +136,7 @@ public class WebController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while cycling secondary screen.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while cycling secondary screen.", e, kioskerActivity);
             }
 
             @Override
@@ -214,8 +213,7 @@ public class WebController {
         WebView.setWebContentsDebuggingEnabled(true);
         final WebView webView = new WebView(kioskerActivity);
         webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins, kioskerActivity));
-
-//        webView.setWebChromeClient(new KioskerWebChromeClient()); // TODO - Maybe this is not needed since chromium is the engine for web view since Kit Kat.
+        webView.setWebChromeClient(new KioskerWebChromeClient());
 
         // Disable hardware acceleration because of rendering bug in Kit Kat. Sometimes it would throw "W/AwContents﹕ nativeOnDraw failed; clearing to background color." errors.
 //        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -385,9 +383,7 @@ public class WebController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while resetting to home.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while resetting to home.", e, kioskerActivity);
             }
 
             @Override

@@ -32,7 +32,6 @@ public class KioskerWebViewClient extends WebViewClient {
     @Override
     public void onLoadResource(WebView view, String url) {
         if (url.startsWith("http")) {
-
         } else {
             Log.d(Constants.TAG, "URL ERROR" + url);
         }
@@ -49,8 +48,6 @@ public class KioskerWebViewClient extends WebViewClient {
                     errorReloaderStarted = false;
                     if (Constants.isNetworkAvailable(kioskerActivity))
                         view.reload();
-                    else
-                        kioskerActivity.refreshDevice();
                 }
             });
         }

@@ -94,9 +94,7 @@ class SoundController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while setting volume.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while setting volume.", e, kioskerActivity);
             }
 
             @Override

@@ -87,9 +87,7 @@ public class ScreenSaverController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while screen saving.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while screen saving.", e, kioskerActivity);
             }
 
             @Override

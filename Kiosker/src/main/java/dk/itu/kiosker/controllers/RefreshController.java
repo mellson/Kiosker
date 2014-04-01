@@ -38,9 +38,7 @@ public class RefreshController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while getting settings.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while getting settings.", e, kioskerActivity);
             }
 
             @Override
@@ -79,9 +77,7 @@ public class RefreshController {
 
             @Override
             public void onError(Throwable e) {
-                String err = "Error while getting a short refresh subscriber.";
-                Log.e(Constants.TAG, err, e);
-                CustomerErrorLogger.log(err, e, kioskerActivity);
+                CustomerErrorLogger.log("Error while getting a short refresh subscriber.", e, kioskerActivity);
             }
 
             @Override
