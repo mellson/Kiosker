@@ -1,9 +1,11 @@
 package dk.itu.kiosker.utils;
 
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.github.kevinsawicki.http.HttpRequest;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
@@ -34,9 +36,22 @@ public class Pinger {
 
             @Override
             public void onNext(Long aLong) {
-                HttpRequest request =  HttpRequest.get(Constants.KIOSKER_PING_URL);
+                Random random = new Random();
+                String randomInt = "";
+                for (int i = 0; i < 5; i++)
+                    randomInt += random.nextInt(9);
+                int version = 0;
+                try {
+                     version = kioskerActivity.getPackageManager().getPackageInfo(kioskerActivity.getPackageName(), 0).versionCode;
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                String deviceId = Constants.getDeviceId(kioskerActivity);
+                deviceId = deviceId.isEmpty() ? "UnknownDevice" : deviceId;
+                String url = "http://clintio.us/kiosker/ping.php?d=" + deviceId + "&v=" + version +  "&r=" + randomInt;
+                HttpRequest request =  HttpRequest.get(url);
                 if (!request.ok())
-                    Log.d(Constants.TAG, "Could not ping " + Constants.KIOSKER_PING_URL);
+                    Log.d(Constants.TAG, "Could not ping " + url);
             }
         };
         return pingSubscriber;

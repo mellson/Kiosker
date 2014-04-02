@@ -25,6 +25,7 @@ import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.Pinger;
 import dk.itu.kiosker.utils.WifiController;
+import dk.itu.kiosker.web.WebViewCacheDeleter;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -45,12 +46,15 @@ public class KioskerActivity extends Activity {
         super.onCreate(savedInstanceState);
         Log.d(Constants.TAG, "onCreate() called");
 
+
         // Check if we should kill the app.
         if (getIntent().getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
             HardwareController.showNavigationUI();
             finish();
             return;
         }
+
+        WebViewCacheDeleter.deleteWebViewCache(this);
 
         Crashlytics.start(this);
         Crashlytics.setUserIdentifier(Constants.getDeviceId(this));

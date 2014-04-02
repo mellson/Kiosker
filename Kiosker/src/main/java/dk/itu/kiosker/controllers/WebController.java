@@ -403,7 +403,8 @@ public class WebController {
     }
 
     private boolean showingHomeUrl() {
-        return webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
+        boolean showingHomeUrl = webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
+        return showingHomeUrl;
     }
 
     public void stopResetToHomeSubscription() {

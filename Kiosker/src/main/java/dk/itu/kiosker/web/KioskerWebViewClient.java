@@ -16,6 +16,7 @@ public class KioskerWebViewClient extends WebViewClient {
     private final long errorReloadMins;
     private final KioskerActivity kioskerActivity;
     private boolean errorReloaderStarted;
+    private boolean firstPageLoad;
 
     public KioskerWebViewClient(long errorReloadMins, KioskerActivity kioskerActivity) {
         this.errorReloadMins = errorReloadMins;
@@ -38,18 +39,31 @@ public class KioskerWebViewClient extends WebViewClient {
     }
 
     @Override
-    public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
-        if (errorCode == ERROR_HOST_LOOKUP)
-            kioskerActivity.refreshDevice();
+    public void onPageFinished(WebView view, String url) {
+        super.onPageFinished(view, url);
+        if (!firstPageLoad) {
+            Constants.setHomeUrl(kioskerActivity, url);
+            firstPageLoad = true;
+        }
+    }
+
+    @Override
+    public void onReceivedError(final WebView view, int errorCode, final String description, String failingUrl) {
+        final int webError = errorCode;
         if (errorReloadMins > 0 && !errorReloaderStarted) {
             errorReloaderStarted = true;
             Observable.timer(errorReloadMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
                 @Override
                 public void call(Long aLong) {
-                    Log.d(Constants.TAG, "Reloading after error");
                     errorReloaderStarted = false;
-                    if (Constants.isNetworkAvailable(kioskerActivity))
+                    if (webError == ERROR_HOST_LOOKUP) {
+                        Log.d(Constants.TAG, "Refreshing after error web error: " + description);
+                        kioskerActivity.refreshDevice();
+                    }
+                    else if (Constants.isNetworkAvailable(kioskerActivity)) {
+                        Log.d(Constants.TAG, "Reloading after web error: " + description);
                         view.reload();
+                    }
                 }
             });
         }

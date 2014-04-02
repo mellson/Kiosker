@@ -14,7 +14,6 @@ import dk.itu.kiosker.utils.RootHelper;
 public class Constants {
     public static long NAVIGATION_ANIMATION_TIME_MILLISECONDS = 200;
     public static long NAVIGATION_ONSCREEN_TIME_SECONDS = 3;
-    public static final CharSequence KIOSKER_PING_URL = "http://clintio.us/kiosker/configs/base.json";
     private static final String KIOSKER_SSID_ID = "kiosker_ssid_id";
     public static String TAG = "Kiosker";
     public static String BASE_SETTINGS = "base";
