@@ -116,7 +116,7 @@ public class OnlineSettings {
                 RetrofitError error = (RetrofitError) throwable;
                 String errorReason = error.getResponse().getReason();
                 Log.e(Constants.TAG, "Error while getting device specific json settings because " + errorReason + ".", throwable);
-                Toast.makeText(kioskerActivity, "Error device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
+                Toast.makeText(kioskerActivity, "Error getting device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
                 kioskerActivity.handleSettings(currentSettings, false);
             }
 

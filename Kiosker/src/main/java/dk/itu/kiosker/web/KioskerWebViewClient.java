@@ -39,6 +39,8 @@ public class KioskerWebViewClient extends WebViewClient {
 
     @Override
     public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
+        if (errorCode == ERROR_HOST_LOOKUP)
+            kioskerActivity.refreshDevice();
         if (errorReloadMins > 0 && !errorReloaderStarted) {
             errorReloaderStarted = true;
             Observable.timer(errorReloadMins, TimeUnit.MINUTES).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {

@@ -44,15 +44,17 @@ public class KioskerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(Constants.TAG, "onCreate() called");
-        Crashlytics.start(this);
-        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
-        Pinger.start(this);
 
         // Check if we should kill the app.
         if (getIntent().getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
             HardwareController.showNavigationUI();
             finish();
+            return;
         }
+
+        Crashlytics.start(this);
+        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
+        Pinger.start(this);
 
         setContentView(R.layout.activity_main);
         setupApplication();
@@ -80,6 +82,7 @@ public class KioskerActivity extends Activity {
     public void refreshDevice() {
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
+
         if (Constants.getInitialRun(this)) {
             InitialSetup.start(this);
             return;

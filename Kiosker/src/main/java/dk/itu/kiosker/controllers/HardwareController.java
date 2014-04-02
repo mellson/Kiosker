@@ -31,6 +31,7 @@ public class HardwareController {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
+                process.destroy();
             } catch (Exception e) {
                 CustomerErrorLogger.log("Error while trying to hide navigation ui.", e, kioskerActivity);
             }
@@ -48,6 +49,7 @@ public class HardwareController {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
                 process.waitFor();
+                process.destroy();
             } catch (Exception e) {
                 CustomerErrorLogger.log("Error while trying to show navigation ui.", e, kioskerActivity);
             }
