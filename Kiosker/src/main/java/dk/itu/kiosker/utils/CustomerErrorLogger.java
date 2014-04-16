@@ -26,8 +26,6 @@ public class CustomerErrorLogger {
         String errorMessage = err + "\n" + time + "\n" + stackTrace;
 
         Constants.setLatestError(errorMessage, activity);
-//        logToGoogleAnalytics(errorMessage, e, activity);
-//        logToFlurry(err, errorMessage, activity, e);
         logToCrashlytics(e, activity, errorMessage);
     }
 
@@ -36,18 +34,4 @@ public class CustomerErrorLogger {
         Crashlytics.log(errorMessage);
         Crashlytics.logException(e);
     }
-
-//    public static void logToFlurry(String err, String message, Activity activity, Throwable e) {
-//        FlurryAgent.setUserId(Constants.getDeviceId(activity));
-//        FlurryAgent.onError(err, message, e.getClass().getName());
-//    }
-//
-//    public static void logToGoogleAnalytics(String err, Throwable e, Activity activity) {
-//        String deviceId = Constants.getDeviceId(activity);
-//        EasyTracker easyTracker = EasyTracker.getInstance(activity);
-//        easyTracker.send(MapBuilder.createException(new StandardExceptionParser(activity, null)
-//                        .getDescription(deviceId + " - " + err, e), false)
-//                        .build()
-//        );
-//    }
 }

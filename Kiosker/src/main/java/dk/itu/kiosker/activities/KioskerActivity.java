@@ -135,8 +135,10 @@ public class KioskerActivity extends Activity {
     public void cleanUpMainView() {
         if (mainLayout != null)
             mainLayout.removeAllViews();
-        if (settingsController != null)
+        if (settingsController != null) {
             settingsController.clearWebViews();
+            settingsController.unsubscribeScheduledTasks();
+        }
     }
     //endregion
 
@@ -196,8 +198,6 @@ public class KioskerActivity extends Activity {
             settingsController.stopScheduledTasks();
         }
         cleanUpMainView();
-//        FlurryAgent.onEndSession(this);
-//        EasyTracker.getInstance(this).activityStop(this);
     }
 
     @Override
@@ -215,9 +215,6 @@ public class KioskerActivity extends Activity {
         Log.d(Constants.TAG, "onStart() called");
         setFullScreenImmersiveMode();
         refreshDevice();
-//        FlurryAgent.setUserId(Constants.getDeviceId(this));
-//        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
-//        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override

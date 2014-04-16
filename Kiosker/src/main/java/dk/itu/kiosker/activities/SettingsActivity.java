@@ -272,16 +272,11 @@ public class SettingsActivity extends Activity {
     public void onStart() {
         super.onStart();
         HardwareController.handleNavigationUI();
-//        FlurryAgent.setUserId(Constants.getDeviceId(this));
-//        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
-//        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-//        FlurryAgent.onEndSession(this);
-//        EasyTracker.getInstance(this).activityStop(this);
     }
 
     private static String encryptPassword(String password) {

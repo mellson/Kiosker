@@ -102,16 +102,11 @@ public class LogActivity extends Activity {
         super.onStart();
         updateLog();
         HardwareController.showNavigationUI();
-//        FlurryAgent.setUserId(Constants.getDeviceId(this));
-//        FlurryAgent.onStartSession(this, FlurryCredentials.API_KEY);
-//        EasyTracker.getInstance(this).activityStart(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
         HardwareController.handleNavigationUI();
-//        FlurryAgent.onEndSession(this);
-//        EasyTracker.getInstance(this).activityStop(this);
     }
 }

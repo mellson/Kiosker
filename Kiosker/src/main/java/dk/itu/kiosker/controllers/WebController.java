@@ -70,8 +70,6 @@ public class WebController {
         resetToHomeMins = resetToHomeMins <= 0 ? defaultResetToHomeMins : resetToHomeMins;
         startResetToHomeSubscription();
 
-        kioskerActivity.cleanUpMainView();
-
         // Get the layout from settings, if there is no layout defined fallback to 0 - fullscreen layout.
         int tempLayout = SettingsExtractor.getInteger(settings, "layout");
         int layout = (tempLayout >= 0) ? tempLayout : 0;
@@ -178,9 +176,6 @@ public class WebController {
             }
 
             reloadSubscriber = reloadSubscriber(webView);
-
-            // Add our subscriber to subscribers so that we can cancel it later
-            subscribers.add(reloadSubscriber);
             Observable.timer(reloadPeriodMins, TimeUnit.MINUTES)
                     .repeat()
                     .observeOn(AndroidSchedulers.mainThread())
@@ -320,7 +315,11 @@ public class WebController {
      * @param webView the web view you want reloaded.
      */
     private Subscriber<Long> reloadSubscriber(final WebView webView) {
-        return new Subscriber<Long>() {
+        if (reloadSubscriber != null && !reloadSubscriber.isUnsubscribed()) {
+            reloadSubscriber.unsubscribe();
+            subscribers.remove(reloadSubscriber);
+        }
+        reloadSubscriber = new Subscriber<Long>() {
             @Override
             public void onCompleted() {
             }
@@ -340,11 +339,14 @@ public class WebController {
                     if (Constants.isNetworkAvailable(kioskerActivity)) {
                         Log.d(Constants.TAG, String.format("Reloading web view with url %s.", url));
                         webView.reload();
+                        webView.clearCache(true);
                     } else
                         kioskerActivity.refreshDevice();
                 }
             }
         };
+        subscribers.add(reloadSubscriber);
+        return reloadSubscriber;
     }
 
     public void startScreenSaverSubscription() {
