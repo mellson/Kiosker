@@ -151,25 +151,27 @@ public class KioskerActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(Constants.TAG, "onActivity result");
 
-        // If the user entered a wrong or no password at all, just return.
-        boolean wrongOrNoPassword = data.getBooleanExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, false);
-        if (wrongOrNoPassword) return;
+        if (data != null) {
+            // If the user entered a wrong or no password at all, just return.
+            boolean wrongOrNoPassword = data.getBooleanExtra(Constants.KIOSKER_WRONG_OR_NO_PASSWORD_ID, false);
+            if (wrongOrNoPassword) return;
 
-        String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
-        Constants.setDeviceId(this, deviceId);
+            String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
+            Constants.setDeviceId(this, deviceId);
 
-        String baseUrl = data.getStringExtra(Constants.JSON_BASE_URL_ID);
-        Constants.setJsonBaseUrl(this, baseUrl);
+            String baseUrl = data.getStringExtra(Constants.JSON_BASE_URL_ID);
+            Constants.setJsonBaseUrl(this, baseUrl);
 
-        Boolean resetDevice = data.getBooleanExtra(Constants.KIOSKER_RESET_DEVICE_ID, false);
-        if (resetDevice) {
-            LocalSettings.removeSafeSettings(this);
-            Constants.setDeviceId(this, "");
-            Constants.setJsonBaseUrl(this, "");
-            Constants.setInitialRun(this, true);
-            Constants.setLatestError("", this);
-            cleanUpMainView();
-            InitialSetup.start(this);
+            Boolean resetDevice = data.getBooleanExtra(Constants.KIOSKER_RESET_DEVICE_ID, false);
+            if (resetDevice) {
+                LocalSettings.removeSafeSettings(this);
+                Constants.setDeviceId(this, "");
+                Constants.setJsonBaseUrl(this, "");
+                Constants.setInitialRun(this, true);
+                Constants.setLatestError("", this);
+                cleanUpMainView();
+                InitialSetup.start(this);
+            }
         }
     }
     //endregion
