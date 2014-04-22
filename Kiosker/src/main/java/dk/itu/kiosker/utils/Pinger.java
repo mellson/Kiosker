@@ -36,6 +36,8 @@ public class Pinger {
 
             @Override
             public void onNext(Long aLong) {
+                if (kioskerActivity.currentlyInStandbyPeriod)
+                    unsubscribe();
                 Random random = new Random();
                 String randomInt = "";
                 for (int i = 0; i < 5; i++)

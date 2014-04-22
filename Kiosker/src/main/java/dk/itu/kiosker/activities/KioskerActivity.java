@@ -40,28 +40,36 @@ public class KioskerActivity extends Activity {
     private StatusUpdater statusUpdater;
     private Subscriber<Long> noInternetSubscriber;
 
-    //region Create methods.
+    //region Startup methods.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(Constants.TAG, "onCreate() called");
 
-
-        // Check if we should kill the app.
-        if (getIntent().getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
-            HardwareController.showNavigationUI();
-            finish();
-            return;
-        }
-
         WebViewCacheDeleter.deleteWebViewCache(this);
-
         Crashlytics.start(this);
         Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
         Pinger.start(this);
 
         setContentView(R.layout.activity_main);
         setupApplication();
+    }
+
+    /**
+     * This method gets called when the kiosker activity intent is started after the app is already running.
+     * This is because of the launch mode being set to single task.
+     * @param intent
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if (intent != null) {
+            // Check if we should kill the app.
+            if (intent.getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
+                HardwareController.showNavigationUI();
+                finish();
+                return;
+            }
+        }
     }
 
     /**
