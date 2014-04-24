@@ -24,7 +24,6 @@ import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.Pinger;
-import dk.itu.kiosker.utils.WifiController;
 import dk.itu.kiosker.web.WebViewCacheDeleter;
 import rx.Observable;
 import rx.Subscriber;
@@ -45,13 +44,6 @@ public class KioskerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(Constants.TAG, "onCreate() called");
-
-        WebViewCacheDeleter.deleteWebViewCache(this);
-        Crashlytics.start(this);
-        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
-        Pinger.start(this);
-
-        setContentView(R.layout.activity_main);
         setupApplication();
     }
 
@@ -62,14 +54,14 @@ public class KioskerActivity extends Activity {
      */
     @Override
     protected void onNewIntent(Intent intent) {
-        if (intent != null) {
-            // Check if we should kill the app.
-            if (intent.getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
-                HardwareController.showNavigationUI();
-                finish();
-                return;
-            }
+        Log.d(Constants.TAG, "onNewIntent() called");
+        // Check if we should kill the app.
+        if (intent != null) if (intent.getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
+            HardwareController.showNavigationUI();
+            finish();
+            return;
         }
+        setupApplication();
     }
 
     /**
@@ -77,10 +69,14 @@ public class KioskerActivity extends Activity {
      * It also decides if we do an initial setup or a refresh of settings.
      */
     private void setupApplication() {
+        setContentView(R.layout.activity_main);
+        WebViewCacheDeleter.deleteWebViewCache(this);
+        Crashlytics.start(this);
+        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
+        Pinger.start(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
         settingsController = new SettingsController(this);
         statusUpdater = new StatusUpdater(this);
-        settingsController.keepScreenOn();
         if (Constants.getInitialRun(this))
             InitialSetup.start(this);
         else
@@ -123,11 +119,15 @@ public class KioskerActivity extends Activity {
                     refreshDevice();
                 }
             };
-            String ssid = Constants.getSSID(this);
-            if (!ssid.isEmpty()) {
-                WifiController wifiController = new WifiController(this);
-                wifiController.connectToWifi(ssid);
-            }
+//
+//            TODO Check when this bug gets fixed.
+//            Currently disabled because of bug in KitKat that will soft kill the wifi radio when programmatically turning on wifi.
+//
+//            String ssid = Constants.getSSID(this);
+//            if (!ssid.isEmpty()) {
+//                WifiController wifiController = new WifiController(this);
+//                wifiController.connectToWifi(ssid);
+//            }
             Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(noInternetSubscriber);
             createSecretMenuButton();
         } else {
@@ -214,6 +214,7 @@ public class KioskerActivity extends Activity {
     protected void onResume() {
         super.onResume();
         Log.d(Constants.TAG, "onResume() called");
+        settingsController.keepScreenOn();
         settingsController.handleOnResume();
         handleNavigationUI();
     }

@@ -5,11 +5,9 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 
 import java.util.LinkedHashMap;
-import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import rx.Observable;
 import rx.Subscriber;
 
 public class WifiController {
@@ -21,12 +19,15 @@ public class WifiController {
     }
 
     public void handleWifiSettings(LinkedHashMap settings) {
-        if (SettingsExtractor.getBoolean(settings, "manualWifi")) {
-            String SSID = SettingsExtractor.getString(settings, "wifiSSID");
-            Constants.setSSID(kioskerActivity, SSID);
-            if (!SSID.isEmpty())
-                Observable.timer(5, TimeUnit.MINUTES).repeat().subscribe(getWifiConnectSubscriber(SSID));
-        }
+//        TODO Check when this bug gets fixed.
+//        Currently disabled because of bug in KitKat that will soft kill the wifi radio when programmatically turning on wifi.
+//
+//        if (SettingsExtractor.getBoolean(settings, "manualWifi")) {
+//            String SSID = SettingsExtractor.getString(settings, "wifiSSID");
+//            Constants.setSSID(kioskerActivity, SSID);
+//            if (!SSID.isEmpty())
+//                Observable.timer(5, TimeUnit.MINUTES).repeat().subscribe(getWifiConnectSubscriber(SSID));
+//        }
     }
 
     private Subscriber<? super Long> getWifiConnectSubscriber(final String SSID) {

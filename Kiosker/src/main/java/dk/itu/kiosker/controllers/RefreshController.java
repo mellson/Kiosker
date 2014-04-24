@@ -43,7 +43,7 @@ public class RefreshController {
 
             @Override
             public void onNext(Long aLong) {
-                if (!kioskerActivity.userIsInteractingWithDevice)
+                if (!kioskerActivity.userIsInteractingWithDevice && kioskerActivity.currentlyInStandbyPeriod)
                     kioskerActivity.refreshDevice();
                 else
                     deviceShouldBeReset = true;

@@ -56,7 +56,7 @@ public class OnlineSettings {
             public void onError(Throwable throwable) {
                 RetrofitError error = null;
                 String errorReason = "Unknown parse error.";
-                if (throwable != null) {
+                if (throwable != null && throwable.getClass().equals(RetrofitError.class)) {
                     error = (RetrofitError) throwable;
                     if (error.getResponse() != null && error.getResponse().getReason() != null)
                         errorReason = error.getResponse().getReason();
@@ -113,11 +113,13 @@ public class OnlineSettings {
 
             @Override
             public void onError(Throwable throwable) {
-                RetrofitError error = (RetrofitError) throwable;
-                String errorReason = error.getResponse().getReason();
-                Log.e(Constants.TAG, "Error while getting device specific json settings because " + errorReason + ".", throwable);
-                Toast.makeText(kioskerActivity, "Error getting device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
-                kioskerActivity.handleSettings(currentSettings, false);
+                if (throwable != null && throwable.getClass().equals(RetrofitError.class)) {
+                    RetrofitError error = (RetrofitError) throwable;
+                    String errorReason = error.getResponse().getReason();
+                    Log.e(Constants.TAG, "Error while getting device specific json settings because " + errorReason + ".", throwable);
+                    Toast.makeText(kioskerActivity, "Error getting device specific json settings: " + errorReason, Toast.LENGTH_LONG).show();
+                    kioskerActivity.handleSettings(currentSettings, false);
+                }
             }
 
             @Override

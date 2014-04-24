@@ -140,7 +140,6 @@ class StandbyController {
                     kioskerActivity.currentlyInStandbyPeriod = false;
                     wakeDevice();
                     unDimDevice(kioskerActivity);
-                    Constants.killApp(kioskerActivity);
                     Constants.restartApp(kioskerActivity);
                 }
             }
@@ -198,17 +197,24 @@ class StandbyController {
      * This method removes the request to keep the screen on.
      * This will make the device go to sleep after the normal screen timeout setting on the device.
      */
+    boolean keepScreenOn;
     void removeKeepScreenOn() {
-        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-        params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        kioskerActivity.getWindow().setAttributes(params);
+        if (keepScreenOn) {
+            WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
+            params.flags -= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            kioskerActivity.getWindow().setAttributes(params);
+            keepScreenOn = false;
+        }
     }
 
     void keepScreenOn() {
-        WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-        params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        kioskerActivity.getWindow().setAttributes(params);
-        createWakeLocks();
+        if (!keepScreenOn) {
+            WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
+            params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            kioskerActivity.getWindow().setAttributes(params);
+            createWakeLocks();
+            keepScreenOn = true;
+        }
     }
 
     /**

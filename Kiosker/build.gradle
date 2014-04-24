@@ -29,8 +29,8 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 19
-        versionCode 41
-        versionName "0.41"
+        versionCode 42
+        versionName "0.42"
     }
 
     compileOptions {
@@ -61,7 +61,7 @@ dependencies {
     compile "com.squareup.retrofit:retrofit:+"
     compile "com.squareup.retrofit:converter-jackson:+"
     compile "com.fasterxml.jackson.core:jackson-databind:+"
-    compile "com.netflix.rxjava:rxjava-android:+"
+    compile "com.netflix.rxjava:rxjava-android:0.17.6"
     compile 'com.crashlytics.android:crashlytics:1.+'
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
