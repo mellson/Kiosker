@@ -394,7 +394,7 @@ public class WebController {
 
             @Override
             public void onNext(Long l) {
-                if (!webViews.isEmpty() && !showingHomeUrl() && !kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving) {
+                if (Constants.isNetworkAvailable(kioskerActivity) && !webViews.isEmpty() && !showingHomeUrl() && !kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving) {
                     Log.d(Constants.TAG, "Resetting to home.");
                     reloadWebViews();
                 } else {

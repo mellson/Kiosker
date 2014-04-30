@@ -1,8 +1,13 @@
 package dk.itu.kiosker.controllers;
 
+import android.app.ActivityManager;
+import android.content.Context;
+
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import dk.itu.kiosker.activities.KioskerActivity;
+import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
@@ -26,7 +31,7 @@ public class HardwareController {
      * It requires root to work.
      */
     public static void hideNavigationUI() {
-        if (!allowHome() && hardwareSettingsParsed && Constants.isDeviceRooted()) {
+        if (!allowHome() && hardwareSettingsParsed && Constants.isDeviceRooted() && showingKioskerActivity(kioskerActivity) && !showingSettings(kioskerActivity)) {
             try {
                 String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
                 Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
@@ -66,5 +71,17 @@ public class HardwareController {
     public void handleHardwareSettings(LinkedHashMap settings) {
         Constants.setAllowHome(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
         hardwareSettingsParsed = true;
+    }
+
+    private static Boolean showingKioskerActivity(KioskerActivity kioskerActivity) {
+        ActivityManager am = (ActivityManager) kioskerActivity.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
+        return taskInfo.get(0).topActivity.getClassName().contains(KioskerActivity.class.getName());
+    }
+
+    private static Boolean showingSettings(KioskerActivity kioskerActivity) {
+        ActivityManager am = (ActivityManager) kioskerActivity.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
+        return taskInfo.get(0).topActivity.getClassName().contains(SettingsActivity.class.getName());
     }
 }

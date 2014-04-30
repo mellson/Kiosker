@@ -7,8 +7,16 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import dk.itu.kiosker.activities.KioskerActivity;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.RootHelper;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 // Constants and other device specific settings.
 public class Constants {
@@ -157,11 +165,30 @@ public class Constants {
         return prefs.getString(KIOSKER_MASTER_PASSWORD_SALT_ID, "");
     }
 
-    public static boolean isNetworkAvailable(KioskerActivity activity) {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    public static boolean isNetworkAvailable(final KioskerActivity activity) {
+        final boolean[] isNetworkAvailable = {false};
+        ConnectivityManager connMgr = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = connMgr.getActiveNetworkInfo();
+        final boolean connected = netInfo != null && netInfo.isConnected();
+        Observable.from(1L).subscribeOn(Schedulers.newThread()).toBlockingObservable().forEach(new Action1<Long>() {
+            @Override
+            public void call(Long aLong) {
+                if (connected) {
+                    try {
+                        URL url = new URL("http://www.google.com");
+                        HttpURLConnection http = (HttpURLConnection) url.openConnection();
+                        http.setRequestProperty("User-Agent", "Android Application");
+                        http.setRequestProperty("Connection", "close");
+                        http.setConnectTimeout(30 * 1000);
+                        http.connect();
+                        isNetworkAvailable[0] = (http.getResponseCode() == 200);
+                    } catch (IOException e) {
+                        CustomerErrorLogger.log("Error while checking if network is available.", e, activity);
+                    }
+                }
+            }
+        });
+        return isNetworkAvailable[0];
     }
 
     public static String getLatestError(Activity activity) {
