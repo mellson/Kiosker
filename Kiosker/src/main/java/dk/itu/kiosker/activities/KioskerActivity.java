@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.R;
-import dk.itu.kiosker.controllers.ActivityController;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
@@ -44,12 +43,12 @@ public class KioskerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(Constants.TAG, "onCreate() called");
-        setupApplication();
     }
 
     /**
      * This method gets called when the kiosker activity intent is started after the app is already running.
      * This is because of the launch mode being set to single task.
+     *
      * @param intent
      */
     @Override
@@ -61,7 +60,6 @@ public class KioskerActivity extends Activity {
             finish();
             return;
         }
-        setupApplication();
     }
 
     /**
@@ -69,18 +67,22 @@ public class KioskerActivity extends Activity {
      * It also decides if we do an initial setup or a refresh of settings.
      */
     private void setupApplication() {
+        setFullScreenImmersiveMode();
         setContentView(R.layout.activity_main);
         WebViewCacheDeleter.deleteWebViewCache(this);
         Crashlytics.start(this);
         Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
         Pinger.start(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
-        settingsController = new SettingsController(this);
-        statusUpdater = new StatusUpdater(this);
+        settingsController = settingsController == null ? new SettingsController(this) : settingsController;
+        if (statusUpdater == null)
+            statusUpdater = new StatusUpdater(this);
+        else
+            statusUpdater.refreshStatusView(this);
         if (Constants.getInitialRun(this))
             InitialSetup.start(this);
         else
-            settingsController.startLongRefreshSubscription();
+            refreshDevice();
     }
 
     /**
@@ -90,11 +92,6 @@ public class KioskerActivity extends Activity {
     public void refreshDevice() {
         Log.d(Constants.TAG, "Refreshing device.");
         cleanUpMainView();
-
-        if (Constants.getInitialRun(this)) {
-            InitialSetup.start(this);
-            return;
-        }
 
         // Check if we have started a subscriber for auto retrying internet connectivity.
         if (noInternetSubscriber != null && !noInternetSubscriber.isUnsubscribed())
@@ -201,12 +198,7 @@ public class KioskerActivity extends Activity {
     public void onStop() {
         super.onStop();
         Log.d(Constants.TAG, "onStop() called");
-        if (!currentlyInStandbyPeriod)
-            ActivityController.handleMainActivityGoingAway(this);
-        if (currentlyInStandbyPeriod) {
-            settingsController.unsubscribeScheduledTasks();
-            settingsController.stopScheduledTasks();
-        }
+        if (currentlyInStandbyPeriod) settingsController.stopScheduledTasks();
         cleanUpMainView();
     }
 
@@ -224,8 +216,7 @@ public class KioskerActivity extends Activity {
     public void onStart() {
         super.onStart();
         Log.d(Constants.TAG, "onStart() called");
-        setFullScreenImmersiveMode();
-        refreshDevice();
+        setupApplication();
     }
 
     @Override
@@ -254,7 +245,7 @@ public class KioskerActivity extends Activity {
 
     public void createSecretMenuButton() {
         Button secretMenuButton = new Button(this);
-        secretMenuButton.setText("Secret Settings");
+        secretMenuButton.setText("Admin");
         mainLayout.addView(secretMenuButton);
         secretMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -272,11 +263,6 @@ public class KioskerActivity extends Activity {
 
     public void startScheduledTasks() {
         settingsController.startScheduledTasks();
-    }
-
-    public void backToMainActivity() {
-        ActivityController.backToMainActivity(this);
-        settingsController.reloadWebViews();
     }
 
     public void handleSettings(LinkedHashMap currentSettings, boolean baseSettings) {

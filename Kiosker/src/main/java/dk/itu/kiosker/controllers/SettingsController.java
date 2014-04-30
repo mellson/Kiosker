@@ -139,10 +139,6 @@ public class SettingsController {
         subscribers.clear();
     }
 
-    public void reloadWebViews() {
-        webController.reloadWebViews();
-    }
-
     public void clearWebViews() {
         webController.clearWebViews();
     }
@@ -161,9 +157,5 @@ public class SettingsController {
 
     public void handleOnPause() {
         standbyController.handleOnPause();
-    }
-
-    public void startLongRefreshSubscription() {
-        refreshController.startLongRefreshSubscription();
     }
 }

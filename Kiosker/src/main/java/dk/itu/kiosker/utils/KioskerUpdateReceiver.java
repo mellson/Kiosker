@@ -9,11 +9,9 @@ import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 
 public class KioskerUpdateReceiver extends BroadcastReceiver {
+
     /**
-     * Restart Kiosker after an update.
-     *
-     * @param context
-     * @param intent
+     * Restarts Kiosker after an update.
      */
     @Override
     public void onReceive(Context context, Intent intent) {

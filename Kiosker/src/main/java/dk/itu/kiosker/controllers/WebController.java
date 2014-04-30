@@ -63,6 +63,8 @@ public class WebController {
     }
 
     public void handleWebSettings(LinkedHashMap settings) {
+        kioskerActivity.cleanUpMainView(); // Make sure that we don't have multiple webviews
+
         reloadPeriodMins = SettingsExtractor.getInteger(settings, "reloadPeriodMins");
         errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
 
@@ -270,8 +272,10 @@ public class WebController {
 
     public void clearWebViews() {
         if (webViews != null)
-            for (WebView webView : webViews)
+            for (WebView webView : webViews) {
+                webView.loadUrl("about:blank");
                 webView.destroy();
+            }
         if (navigationLayouts != null)
             for (NavigationLayout navigationLayout : navigationLayouts)
                 navigationLayout.removeAllViews();
@@ -392,7 +396,7 @@ public class WebController {
             public void onNext(Long l) {
                 if (!webViews.isEmpty() && !showingHomeUrl() && !kioskerActivity.currentlyInStandbyPeriod && !kioskerActivity.currentlyScreenSaving) {
                     Log.d(Constants.TAG, "Resetting to home.");
-                    kioskerActivity.backToMainActivity();
+                    reloadWebViews();
                 } else {
                     unsubscribe();
                     subscribers.remove(resetToHomeSubscriber);
@@ -405,8 +409,7 @@ public class WebController {
     }
 
     private boolean showingHomeUrl() {
-        boolean showingHomeUrl = webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
-        return showingHomeUrl;
+        return webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
     }
 
     public void stopResetToHomeSubscription() {

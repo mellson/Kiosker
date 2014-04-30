@@ -16,13 +16,18 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 class StatusUpdater {
-    private final TextView mainStatusTextView;
-    private final TextView subStatusTextView;
-    private final LinearLayout mainLayout;
+    private TextView mainStatusTextView;
+    private TextView subStatusTextView;
+    private LinearLayout mainLayout;
 
     public StatusUpdater(KioskerActivity kioskerActivity) {
         mainStatusTextView = getTextView(60, 0.7f, kioskerActivity);
         subStatusTextView = getTextView(25, 0.5f, kioskerActivity);
+        this.mainLayout = kioskerActivity.mainLayout;
+    }
+
+    public void refreshStatusView(KioskerActivity kioskerActivity) {
+        removeStatusTextViews();
         this.mainLayout = kioskerActivity.mainLayout;
     }
 
