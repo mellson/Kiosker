@@ -93,6 +93,8 @@ This will explain every current possible setting.
     - Example: `"quietHoursStartTime": "18.00"`
 - `quietHoursStopTime` - Decides when the device should stop the silent period and return to the normal `volume`.
     - Example: `"quietHoursStopTime": "07.30"`
+- `manualWifi` - `bool` that decides if the device should manually connect to the provided `wifiSSID`.
+- `wifiSSID` - The SSID which the device should connect to.
 
 ## Kiosker Watchdog
 Kiosker has a companion app which can be run in the background.
