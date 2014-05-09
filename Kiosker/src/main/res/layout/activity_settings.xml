@@ -62,6 +62,12 @@
             android:onClick="killApp"
             android:text="Kill App" />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="clearWifiAndReboot"
+            android:text="Clear Wifi and Reboot" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">

@@ -5,9 +5,12 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import rx.Observable;
 import rx.Subscriber;
 
 public class WifiController {
@@ -19,15 +22,12 @@ public class WifiController {
     }
 
     public void handleWifiSettings(LinkedHashMap settings) {
-//        TODO Check when this bug gets fixed.
-//        Currently disabled because of bug in KitKat that will soft kill the wifi radio when programmatically turning on wifi.
-//
-//        if (SettingsExtractor.getBoolean(settings, "manualWifi")) {
-//            String SSID = SettingsExtractor.getString(settings, "wifiSSID");
-//            Constants.setSSID(kioskerActivity, SSID);
-//            if (!SSID.isEmpty())
-//                Observable.timer(5, TimeUnit.MINUTES).repeat().subscribe(getWifiConnectSubscriber(SSID));
-//        }
+        if (SettingsExtractor.getBoolean(settings, "manualWifi")) {
+            String SSID = SettingsExtractor.getString(settings, "wifiSSID");
+            Constants.setSSID(kioskerActivity, SSID);
+            if (!SSID.isEmpty())
+                Observable.timer(5, TimeUnit.MINUTES).repeat().subscribe(getWifiConnectSubscriber(SSID));
+        }
     }
 
     private Subscriber<? super Long> getWifiConnectSubscriber(final String SSID) {
@@ -56,15 +56,23 @@ public class WifiController {
 
     public void connectToWifi(String ssid) {
         WifiManager wifiManager = (WifiManager) kioskerActivity.getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
+
+        List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();
+        while (configuredNetworks == null) {
+            wifiManager.setWifiEnabled(false);
+            wifiManager.setWifiEnabled(true);
+            configuredNetworks = wifiManager.getConfiguredNetworks();
+        }
+
+        for (WifiConfiguration network : configuredNetworks)
+            if (network.SSID.replace("\"","").equals(ssid))
+                wifiManager.removeNetwork(network.networkId);
 
         WifiConfiguration config = new WifiConfiguration();
         config.SSID = "\"" + ssid + "\"";
         config.preSharedKey = "\""+ WifiCredentials.wifiKeys.get(ssid) +"\"";
-
         int netId = wifiManager.addNetwork(config);
         wifiManager.saveConfiguration();
         wifiManager.enableNetwork(netId, true);
-        wifiManager.reconnect();
     }
 }

@@ -27,6 +27,7 @@ import java.util.Formatter;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.ClearWifiFiles;
 
 
 public class SettingsActivity extends Activity {
@@ -302,5 +303,11 @@ public class SettingsActivity extends Activity {
         String result = formatter.toString();
         formatter.close();
         return result;
+    }
+
+    public void clearWifiAndReboot(View view) {
+        ClearWifiFiles.RemoveSystemLevelWifiFiles(this);
+        ClearWifiFiles.RebootDevice(this);
+
     }
 }

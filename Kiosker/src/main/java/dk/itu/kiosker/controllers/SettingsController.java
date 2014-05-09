@@ -11,6 +11,7 @@ import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.SettingsExtractor;
+import dk.itu.kiosker.utils.WifiController;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -23,7 +24,7 @@ public class SettingsController {
     private final WebController webController;
     private final StandbyController standbyController;
     private final HardwareController hardwareController;
-//    private final WifiController wifiController;
+    private final WifiController wifiController;
 
     private final RefreshController refreshController;
     // List of the scheduled settings
@@ -38,7 +39,7 @@ public class SettingsController {
         standbyController = new StandbyController(kioskerActivity, subscribers);
         hardwareController = new HardwareController(kioskerActivity);
         refreshController = new RefreshController(kioskerActivity);
-//        wifiController = new WifiController(kioskerActivity);
+        wifiController = new WifiController(kioskerActivity);
     }
 
     public void handleSettings(LinkedHashMap settings, boolean baseSettings) {
@@ -51,7 +52,7 @@ public class SettingsController {
         webController.handleWebSettings(settings);
         standbyController.handleStandbySettings(settings);
         hardwareController.handleHardwareSettings(settings);
-//        wifiController.handleWifiSettings(settings);
+        wifiController.handleWifiSettings(settings);
 
         // Save these settings as the safe defaults.
         if (!settings.isEmpty())

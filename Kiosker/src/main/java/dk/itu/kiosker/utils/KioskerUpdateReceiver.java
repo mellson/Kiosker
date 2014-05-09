@@ -15,9 +15,11 @@ public class KioskerUpdateReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(Constants.TAG, "Restarting Kiosker after an update");
-        Intent i = new Intent(context, KioskerActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(i);
+        if (intent.getComponent().getPackageName().equals("dk.itu.kiosker")) {
+            Log.d(Constants.TAG, "Restarting Kiosker after an update");
+            Intent i = new Intent(context, KioskerActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        }
     }
 }
