@@ -37,14 +37,14 @@ class StandbyController {
 
     public static void unDimDevice(KioskerActivity kioskerActivity) {
         WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-        params.screenBrightness = Constants.getBrightness(kioskerActivity);
+        params.screenBrightness = Constants.getFloat(kioskerActivity, Constants.KIOSKER_BRIGHTNESS_ID);
         kioskerActivity.getWindow().setAttributes(params);
     }
 
     public static void dimDevice(KioskerActivity kioskerActivity) {
         if (!kioskerActivity.currentlyScreenSaving) {
             WindowManager.LayoutParams params = kioskerActivity.getWindow().getAttributes();
-            params.screenBrightness = Constants.getDimmedBrightness(kioskerActivity);
+            params.screenBrightness = Constants.getFloat(kioskerActivity, Constants.KIOSKER_DIMMED_BRIGHTNESS_ID);
             kioskerActivity.getWindow().setAttributes(params);
         }
     }
@@ -52,11 +52,11 @@ class StandbyController {
     public void handleStandbySettings(LinkedHashMap settings) {
         int tempBrightness = SettingsExtractor.getInteger(settings, "brightness");
         float brightness = tempBrightness <= 0 ? 1.0f : (float) (tempBrightness / 100.0);
-        Constants.setBrightness(kioskerActivity, brightness);
+        Constants.setFloat(kioskerActivity, brightness, Constants.KIOSKER_BRIGHTNESS_ID);
 
         tempBrightness = SettingsExtractor.getInteger(settings, "dimmedBrightness");
         float dimmedBrightness = tempBrightness <= 0 ? 0.7f : (float) (tempBrightness / 100.0);
-        Constants.setDimmedBrightness(kioskerActivity, dimmedBrightness);
+        Constants.setFloat(kioskerActivity, dimmedBrightness, Constants.KIOSKER_DIMMED_BRIGHTNESS_ID);
 
         int idlePeriodMins = SettingsExtractor.getInteger(settings, "idlePeriodMins");
         if (idlePeriodMins > 0) {

@@ -43,10 +43,10 @@ public class SettingsController {
     }
 
     public void handleSettings(LinkedHashMap settings, boolean baseSettings) {
-        Constants.setPasswordHash(kioskerActivity, SettingsExtractor.getString(settings, "passwordHash"));
-        Constants.setMasterPasswordHash(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordHash"));
-        Constants.setPasswordSalt(kioskerActivity, SettingsExtractor.getString(settings, "passwordSalt"));
-        Constants.setMasterPasswordSalt(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordSalt"));
+        Constants.setString(kioskerActivity, SettingsExtractor.getString(settings, "passwordHash"), Constants.KIOSKER_PASSWORD_HASH_ID);
+        Constants.setString(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordHash"), Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
+        Constants.setString(kioskerActivity, SettingsExtractor.getString(settings, "passwordSalt"), Constants.KIOSKER_PASSWORD_SALT_ID);
+        Constants.setString(kioskerActivity, SettingsExtractor.getString(settings, "masterPasswordSalt"), Constants.KIOSKER_MASTER_PASSWORD_SALT_ID);
 
         soundController.handleSoundSettings(settings);
         webController.handleWebSettings(settings);

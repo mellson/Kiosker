@@ -85,6 +85,12 @@ public class WebController {
 
         screenSaverController = new ScreenSaverController(kioskerActivity, subscribers, this);
         screenSaverController.handleScreenSaving(settings);
+
+        boolean clearCache = Constants.getBoolean(kioskerActivity, Constants.KIOSKER_RESET_WEBCACHE);
+        if (clearCache) {
+            for (WebView webView : webViews) webView.clearCache(true);
+            Constants.setBoolean(kioskerActivity, false, Constants.KIOSKER_RESET_WEBCACHE);
+        }
     }
 
     private void handleWebViewSetup(int layout) {
@@ -108,7 +114,7 @@ public class WebController {
         // Only handle secondary cycling if we are not in fullscreen layout
         if (!fullScreenMode) {
             boolean allowSwitching = SettingsExtractor.getBoolean(settings, "allowSwitching");
-            Constants.setAllowSwitching(kioskerActivity, allowSwitching);
+            Constants.setBoolean(kioskerActivity, allowSwitching, Constants.KIOSKER_ALLOW_SWITCHING_ID);
             boolean autoCycleSecondary = SettingsExtractor.getBoolean(settings, "autoCycleSecondary");
             if (autoCycleSecondary && sitesWebPages.size() > 2) {
                 int autoCycleSecondaryPeriodMins = SettingsExtractor.getInteger(settings, "autoCycleSecondaryPeriodMins");
@@ -271,11 +277,12 @@ public class WebController {
     }
 
     public void clearWebViews() {
-        if (webViews != null)
+        if (webViews != null) {
             for (WebView webView : webViews) {
                 webView.loadUrl("about:blank");
                 webView.destroy();
             }
+        }
         if (navigationLayouts != null)
             for (NavigationLayout navigationLayout : navigationLayouts)
                 navigationLayout.removeAllViews();
@@ -409,7 +416,7 @@ public class WebController {
     }
 
     private boolean showingHomeUrl() {
-        return webViews.get(0).getUrl().equals(Constants.getHomeUrl(kioskerActivity));
+        return webViews.get(0).getUrl().equals(Constants.getString(kioskerActivity, Constants.KIOSKER_HOME_URL_ID));
     }
 
     public void stopResetToHomeSubscription() {

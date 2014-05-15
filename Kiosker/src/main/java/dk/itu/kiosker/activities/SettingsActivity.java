@@ -45,10 +45,10 @@ public class SettingsActivity extends Activity {
         setContentView(R.layout.activity_settings);
         keepScreenOn();
 
-        PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_HASH_ID);
-        MASTER_PASSWORD_HASH = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
-        PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_SALT_ID);
-        MASTER_PASSWORD_SALT = this.getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID);
+        PASSWORD_HASH = getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_HASH_ID);
+        MASTER_PASSWORD_HASH = getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_HASH_ID);
+        PASSWORD_SALT = getIntent().getStringExtra(Constants.KIOSKER_PASSWORD_SALT_ID);
+        MASTER_PASSWORD_SALT = getIntent().getStringExtra(Constants.KIOSKER_MASTER_PASSWORD_SALT_ID);
 
         if ((PASSWORD_HASH != null && !PASSWORD_HASH.isEmpty())
                 || (MASTER_PASSWORD_HASH != null && !MASTER_PASSWORD_HASH.isEmpty()))
@@ -94,11 +94,11 @@ public class SettingsActivity extends Activity {
         });
 
         EditText deviceIdEditText = (EditText) findViewById(R.id.deviceIdEditText);
-        String deviceId = this.getIntent().getStringExtra(Constants.KIOSKER_DEVICE_ID);
+        String deviceId = getIntent().getStringExtra(Constants.KIOSKER_DEVICE_ID);
         deviceIdEditText.setText(deviceId);
 
         final CheckBox allowHomeCheckbox = (CheckBox) findViewById(R.id.allowHomeCheckBox);
-        allowHome = this.getIntent().getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
+        allowHome = getIntent().getBooleanExtra(Constants.KIOSKER_ALLOW_HOME_ID, false);
         allowHomeCheckbox.setChecked(allowHome);
         // Only allow to allow home if the device is actually rooted
         allowHomeCheckbox.setEnabled(Constants.isDeviceRooted());
@@ -121,7 +121,7 @@ public class SettingsActivity extends Activity {
         });
 
         EditText baseUrlEditText = (EditText) findViewById(R.id.baseUrlEditText);
-        String baseUrl = Constants.JSON_BASE_URL;
+        String baseUrl = getIntent().getStringExtra(Constants.KIOSKER_JSON_BASE_URL_ID);;
         baseUrlEditText.setText(baseUrl);
 
         Button saveBaseUrlButton = (Button) findViewById(R.id.saveBaseUrlButton);
@@ -216,7 +216,7 @@ public class SettingsActivity extends Activity {
         // Put in base url.
         EditText baseUrlEditText = (EditText) findViewById(R.id.baseUrlEditText);
         String baseUrl = baseUrlEditText.getText().toString();
-        data.putExtra(Constants.JSON_BASE_URL_ID, baseUrl);
+        data.putExtra(Constants.KIOSKER_JSON_BASE_URL_ID, baseUrl);
 
         // Activity finished ok, return the data.
         setResult(RESULT_OK, data);
@@ -261,6 +261,7 @@ public class SettingsActivity extends Activity {
 
     public void restartApp(View v) {
         Constants.restartApp(this);
+        Constants.setBoolean(this, true, Constants.KIOSKER_RESET_WEBCACHE);
         finish();
     }
 

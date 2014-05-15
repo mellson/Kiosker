@@ -25,12 +25,12 @@ public class CustomerErrorLogger {
         String time = formatter.format(new Date());
         String errorMessage = err + "\n" + time + "\n" + stackTrace;
 
-        Constants.setLatestError(errorMessage, activity);
+        Constants.setString(activity, errorMessage, Constants.KIOSKER_LATEST_EXCEPTION_ID);
         logToCrashlytics(e, activity, errorMessage);
     }
 
     public static void logToCrashlytics(Throwable e, Activity activity, String errorMessage) {
-        Crashlytics.setUserIdentifier(Constants.getDeviceId(activity));
+        Crashlytics.setUserIdentifier(Constants.getString(activity, Constants.KIOSKER_DEVICE_ID));
         Crashlytics.log(errorMessage);
         Crashlytics.logException(e);
     }

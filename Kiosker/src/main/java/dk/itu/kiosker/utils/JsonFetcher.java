@@ -17,8 +17,11 @@ public class JsonFetcher {
     // Jackson mapper used to parse the json.
     public ObjectMapper mapper = new ObjectMapper(new JsonFactory()).configure(JsonParser.Feature.ALLOW_COMMENTS, true);
     // The rest adapter that will call the server.
+
+    String endpoint = !Constants.JSON_BASE_URL.isEmpty() ? Constants.JSON_BASE_URL : "http://google.dk";
+
     private RestAdapter restAdapter = new RestAdapter.Builder()
-            .setEndpoint(Constants.JSON_BASE_URL)
+            .setEndpoint(endpoint)
             .setConverter(new JacksonConverter(mapper))
             .build();
     // The manager that ties everything together and lets us call our interface method.

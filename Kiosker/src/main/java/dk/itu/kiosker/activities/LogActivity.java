@@ -83,7 +83,7 @@ public class LogActivity extends Activity {
                                 e.printStackTrace();
                             }
                             updateSubscriber.unsubscribe();
-                            String latestException = Constants.getLatestError(LogActivity.this);
+                            String latestException = Constants.getString(LogActivity.this, Constants.KIOSKER_LATEST_EXCEPTION_ID);
                             if (!latestException.isEmpty()) {
                                 TextView tv2 = (TextView) findViewById(R.id.exceptionsTextView);
                                 tv2.setTextColor(Color.RED);

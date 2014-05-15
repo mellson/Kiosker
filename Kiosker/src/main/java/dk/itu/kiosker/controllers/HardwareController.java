@@ -22,7 +22,7 @@ public class HardwareController {
 
     // Is used to indicate whether or not the navigation ui should be hidden or not.
     private static Boolean allowHome() {
-        return Constants.getAllowHome(kioskerActivity);
+        return Constants.getBoolean(kioskerActivity, Constants.KIOSKER_ALLOW_HOME_ID);
     }
 
     /**
@@ -69,7 +69,7 @@ public class HardwareController {
     }
 
     public void handleHardwareSettings(LinkedHashMap settings) {
-        Constants.setAllowHome(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"));
+        Constants.setBoolean(kioskerActivity, SettingsExtractor.getBoolean(settings, "allowHome"), Constants.KIOSKER_ALLOW_HOME_ID);
         hardwareSettingsParsed = true;
     }
 

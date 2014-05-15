@@ -20,7 +20,7 @@ public class OnlineSettings {
     private static LinkedHashMap currentSettings;
 
     public static void getSettings(KioskerActivity kioskerActivity) {
-        Constants.JSON_BASE_URL = Constants.getJsonBaseUrl(kioskerActivity);
+        Constants.JSON_BASE_URL = Constants.getString(kioskerActivity, Constants.KIOSKER_JSON_BASE_URL_ID);
 
         if (!Constants.JSON_BASE_URL.isEmpty()) {
             JsonFetcher fetcher = new JsonFetcher();
@@ -42,7 +42,7 @@ public class OnlineSettings {
             public void onCompleted() {
                 Log.d(Constants.TAG, "Finished getting base json settings.");
                 kioskerActivity.updateSubStatus("Finished downloading base settings.");
-                String device_id = Constants.getDeviceId(kioskerActivity);
+                String device_id = Constants.getString(kioskerActivity, Constants.KIOSKER_DEVICE_ID);
                 if (!device_id.isEmpty()) {
                     JsonFetcher jsonFetcher = new JsonFetcher();
                     jsonFetcher.getObservableMap(device_id + Constants.FILE_ENDING)

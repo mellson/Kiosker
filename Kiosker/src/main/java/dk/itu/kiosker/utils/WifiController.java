@@ -23,8 +23,9 @@ public class WifiController {
 
     public void handleWifiSettings(LinkedHashMap settings) {
         if (SettingsExtractor.getBoolean(settings, "manualWifi")) {
+            Constants.setBoolean(kioskerActivity, true, Constants.KIOSKER_MANUAL_WIFI);
             String SSID = SettingsExtractor.getString(settings, "wifiSSID");
-            Constants.setSSID(kioskerActivity, SSID);
+            Constants.setString(kioskerActivity, SSID, Constants.KIOSKER_SSID_ID);
             if (!SSID.isEmpty())
                 Observable.timer(5, TimeUnit.MINUTES).repeat().subscribe(getWifiConnectSubscriber(SSID));
         }

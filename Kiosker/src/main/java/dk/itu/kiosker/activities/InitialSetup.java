@@ -21,7 +21,7 @@ public class InitialSetup {
      * This initial run can be triggered by resetting the device.
      */
     public static void start(final KioskerActivity kioskerActivity) {
-        Constants.setInitialRun(kioskerActivity, true);
+        Constants.setBoolean(kioskerActivity, true, Constants.KIOSKER_INITIAL_RUN);
         kioskerActivity.updateMainStatus("Initial Run");
         kioskerActivity.updateSubStatus("Please set the base url.");
         final EditText et = new EditText(kioskerActivity);
@@ -41,11 +41,11 @@ public class InitialSetup {
                         return false;
                     }
                     // Hide the keyboard
-                    Constants.setJsonBaseUrl(kioskerActivity, baseUrl);
+                    Constants.setString(kioskerActivity, baseUrl, Constants.KIOSKER_JSON_BASE_URL_ID);
                     InputMethodManager imm = (InputMethodManager) kioskerActivity.getSystemService(
                             Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(et.getWindowToken(), 0);
-                    Constants.setInitialRun(kioskerActivity, false);
+                    Constants.setBoolean(kioskerActivity, false, Constants.KIOSKER_INITIAL_RUN);
                     kioskerActivity.refreshDevice();
                     return true;
                 }

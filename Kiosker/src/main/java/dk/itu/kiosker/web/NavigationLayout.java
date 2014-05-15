@@ -92,7 +92,7 @@ public class NavigationLayout extends LinearLayout {
         navigationControls.addView(homeButton);
 
         // Add the site selector if we are on the secondary panel and the user is allowed to change sites.
-        allowSwitching = homeView ? false : Constants.getAllowSwitching(kioskerActivity);
+        allowSwitching = !homeView && Constants.getBoolean(kioskerActivity, Constants.KIOSKER_ALLOW_SWITCHING_ID);
         if (!homeView && allowSwitching) {
             ArrayList<String> siteTitles = new ArrayList<>();
             for (WebPage webPage : sitesWebPages) {
@@ -131,7 +131,7 @@ public class NavigationLayout extends LinearLayout {
         // The first time a user tries to navigate we set the home url to the current one on display.
         if (firstTimeHere) {
             homeUrl = webView.getUrl();
-            Constants.setHomeUrl(kioskerActivity, homeUrl);
+            Constants.setString(kioskerActivity, homeUrl, Constants.KIOSKER_HOME_URL_ID);
             firstTimeHere = false;
         }
         if (allowSwitching || !webView.getUrl().equals(homeUrl)) {

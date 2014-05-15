@@ -23,7 +23,7 @@ import dk.itu.kiosker.models.OnlineSettings;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
 import dk.itu.kiosker.utils.Pinger;
-import dk.itu.kiosker.web.WebViewCacheDeleter;
+import dk.itu.kiosker.utils.WifiController;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -55,11 +55,11 @@ public class KioskerActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         Log.d(Constants.TAG, "onNewIntent() called");
         // Check if we should kill the app.
-        if (intent != null) if (intent.getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
-            HardwareController.showNavigationUI();
-            finish();
-            return;
-        }
+        if (intent != null)
+            if (intent.getBooleanExtra(Constants.KIOSKER_KILL_APP_ID, false)) {
+                HardwareController.showNavigationUI();
+                finish();
+            }
     }
 
     /**
@@ -69,9 +69,8 @@ public class KioskerActivity extends Activity {
     private void setupApplication() {
         setFullScreenImmersiveMode();
         setContentView(R.layout.activity_main);
-        WebViewCacheDeleter.deleteWebViewCache(this);
         Crashlytics.start(this);
-        Crashlytics.setUserIdentifier(Constants.getDeviceId(this));
+        Crashlytics.setUserIdentifier(Constants.getString(this, Constants.KIOSKER_DEVICE_ID));
         Pinger.start(this);
         mainLayout = (LinearLayout) findViewById(R.id.mainView);
         settingsController = settingsController == null ? new SettingsController(this) : settingsController;
@@ -79,7 +78,7 @@ public class KioskerActivity extends Activity {
             statusUpdater = new StatusUpdater(this);
         else
             statusUpdater.refreshStatusView(this);
-        if (Constants.getInitialRun(this))
+        if (Constants.getBoolean(this, Constants.KIOSKER_INITIAL_RUN))
             InitialSetup.start(this);
         else
             refreshDevice();
@@ -116,15 +115,16 @@ public class KioskerActivity extends Activity {
                     refreshDevice();
                 }
             };
-//
-//            TODO Check when this bug gets fixed.
-//            Currently disabled because of bug in KitKat that will soft kill the wifi radio when programmatically turning on wifi.
-//
-//            String ssid = Constants.getSSID(this);
-//            if (!ssid.isEmpty()) {
-//                WifiController wifiController = new WifiController(this);
-//                wifiController.connectToWifi(ssid);
-//            }
+
+            if (Constants.hasSafeSettings(this))
+                Constants.settingsText = LocalSettings.getSafeJson(this).toString();
+
+            String ssid = Constants.getString(this, Constants.KIOSKER_SSID_ID);
+            boolean manualWifi = Constants.getBoolean(this, Constants.KIOSKER_MANUAL_WIFI);
+            if (!ssid.isEmpty() && manualWifi) {
+                WifiController wifiController = new WifiController(this);
+                wifiController.connectToWifi(ssid);
+            }
             Observable.timer(30, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(noInternetSubscriber);
             createSecretMenuButton();
         } else {
@@ -162,18 +162,18 @@ public class KioskerActivity extends Activity {
             if (wrongOrNoPassword) return;
 
             String deviceId = data.getStringExtra(Constants.KIOSKER_DEVICE_ID);
-            Constants.setDeviceId(this, deviceId);
+            Constants.setString(this, deviceId, Constants.KIOSKER_DEVICE_ID);
 
-            String baseUrl = data.getStringExtra(Constants.JSON_BASE_URL_ID);
-            Constants.setJsonBaseUrl(this, baseUrl);
+            String baseUrl = data.getStringExtra(Constants.KIOSKER_JSON_BASE_URL_ID);
+            Constants.setString(this, baseUrl, Constants.KIOSKER_JSON_BASE_URL_ID);
 
             Boolean resetDevice = data.getBooleanExtra(Constants.KIOSKER_RESET_DEVICE_ID, false);
             if (resetDevice) {
                 LocalSettings.removeSafeSettings(this);
-                Constants.setDeviceId(this, "");
-                Constants.setJsonBaseUrl(this, "");
-                Constants.setInitialRun(this, true);
-                Constants.setLatestError("", this);
+                Constants.setString(this, "", Constants.KIOSKER_JSON_BASE_URL_ID);
+                Constants.setString(this, "", Constants.KIOSKER_DEVICE_ID);
+                Constants.setBoolean(this, true, Constants.KIOSKER_INITIAL_RUN);
+                Constants.setString(this, "", Constants.KIOSKER_LATEST_EXCEPTION_ID);
                 cleanUpMainView();
                 InitialSetup.start(this);
             }

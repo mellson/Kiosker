@@ -48,7 +48,7 @@ public class Pinger {
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }
-                String deviceId = Constants.getDeviceId(kioskerActivity);
+                String deviceId = Constants.getString(kioskerActivity, Constants.KIOSKER_DEVICE_ID);
                 deviceId = deviceId.isEmpty() ? "UnknownDevice" : deviceId;
                 String url = "http://clintio.us/kiosker/ping.php?d=" + deviceId + "&v=" + version +  "&r=" + randomInt;
                 HttpRequest request =  HttpRequest.get(url);

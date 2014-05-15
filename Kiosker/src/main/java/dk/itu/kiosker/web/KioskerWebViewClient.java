@@ -42,7 +42,7 @@ public class KioskerWebViewClient extends WebViewClient {
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
         if (!firstPageLoad) {
-            Constants.setHomeUrl(kioskerActivity, url);
+            Constants.setString(kioskerActivity, url, Constants.KIOSKER_HOME_URL_ID);
             firstPageLoad = true;
         }
     }
