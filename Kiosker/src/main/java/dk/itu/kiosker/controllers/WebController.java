@@ -80,33 +80,30 @@ public class WebController {
         homeWebPages = SettingsExtractor.getWebPages(settings, "home");
         sitesWebPages = SettingsExtractor.getWebPages(settings, "sites");
 
-        handleWebViewSetup(layout);
+        boolean clearCache = Constants.getBoolean(kioskerActivity, Constants.KIOSKER_RESET_WEBCACHE);
+        handleWebViewSetup(layout, clearCache);
+        if (clearCache) Constants.setBoolean(kioskerActivity, false, Constants.KIOSKER_RESET_WEBCACHE);
         handleAutoCycleSecondary(settings);
 
         screenSaverController = new ScreenSaverController(kioskerActivity, subscribers, this);
         screenSaverController.handleScreenSaving(settings);
 
-        boolean clearCache = Constants.getBoolean(kioskerActivity, Constants.KIOSKER_RESET_WEBCACHE);
-        if (clearCache) {
-            for (WebView webView : webViews) webView.clearCache(true);
-            Constants.setBoolean(kioskerActivity, false, Constants.KIOSKER_RESET_WEBCACHE);
-        }
     }
 
-    private void handleWebViewSetup(int layout) {
+    private void handleWebViewSetup(int layout, boolean clearCache) {
         if (!homeWebPages.isEmpty()) {
             float weight = WebHelper.layoutTranslator(layout, true);
             // If the weight to the main view is "below" fullscreen and there are alternative sites set the main view to fullscreen.
             if (weight < 1.0 && sitesWebPages.isEmpty())
-                setupWebView(true, homeWebPages.get(0), 1.0f, true);
+                setupWebView(true, homeWebPages.get(0), 1.0f, true, clearCache);
             if (weight > 0.0)
-                setupWebView(true, homeWebPages.get(0), weight, true);
+                setupWebView(true, homeWebPages.get(0), weight, true, clearCache);
         }
 
         if (!sitesWebPages.isEmpty() && !fullScreenMode) {
             float weight = WebHelper.layoutTranslator(layout, false);
             if (weight > 0.0)
-                setupWebView(false, sitesWebPages.get(0), weight, true);
+                setupWebView(false, sitesWebPages.get(0), weight, true, clearCache);
         }
     }
 
@@ -172,8 +169,9 @@ public class WebController {
      * @param weight         how much screen estate should this main take?
      * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
-    protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading) {
+    protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading, boolean clearCache) {
         WebView webView = getWebView();
+        if (clearCache) webView.clearCache(true);
         webViews.add(webView);
         webView.loadUrl(webPage.url);
         addTapToSettings(webView);
@@ -292,10 +290,9 @@ public class WebController {
         sitesWebPages = resetArray(sitesWebPages);
     }
 
-    private ArrayList resetArray(ArrayList array) {
+    private <T> ArrayList<T> resetArray(ArrayList<T> array) {
         if (array != null) {
             array.clear();
-            array = null;
         }
         return new ArrayList<>();
     }

@@ -102,7 +102,7 @@ public class ScreenSaverController {
                     kioskerActivity.cleanUpMainView();
 
                     // Make a new full screen web view with a random url from the screen saver urls.
-                    webController.setupWebView(false, screenSaverWebPages.get(randomIndex), 1.0f, false);
+                    webController.setupWebView(false, screenSaverWebPages.get(randomIndex), 1.0f, false, false);
 
                     // Run the screen saver at max brightness
                     StandbyController.unDimDevice(kioskerActivity);
