@@ -7,12 +7,6 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/settingsTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" />
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,7 +18,7 @@
             android:id="@+id/closeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Close and Refresh" />
+            android:text="Close Admin Menu" />
 
         <Button
             android:id="@+id/logButton"
@@ -33,13 +27,19 @@
             android:text="Show Log" />
 
         <Button
+            android:id="@+id/showSettingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Settings" />
+
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="showNavigationUI"
             android:text="Show Navigation UI" />
 
         <Button
-            android:id="@+id/settingsButton"
+            android:id="@+id/systemSettingsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="System Settings" />
@@ -122,10 +122,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Save" />
-
         </LinearLayout>
-
     </LinearLayout>
-
-
 </RelativeLayout>

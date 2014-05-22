@@ -3,7 +3,9 @@ package dk.itu.kiosker.controllers;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
@@ -59,7 +61,7 @@ public class SettingsController {
             LocalSettings.setSafeJson(kioskerActivity, settings);
 
         // Show our settings in the settings activity.
-        Constants.settingsText = settings.toString();
+        Constants.settingsText = settingsToString(settings);
 
         // If the settings are empty we have failed to get any settings.
         if (settings.isEmpty() && baseSettings) {
@@ -74,6 +76,21 @@ public class SettingsController {
 
         // Set the user provided brightness
         StandbyController.unDimDevice(kioskerActivity);
+    }
+
+    /**
+     * String extractor for a map
+     * @param mp
+     */
+    public static String settingsToString(Map mp) {
+        String result = "";
+        Iterator it = mp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry)it.next();
+            result += pairs.getKey() + " = " + pairs.getValue() + "\n";
+            it.remove();
+        }
+        return result;
     }
 
     /**

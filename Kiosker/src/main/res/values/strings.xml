@@ -3,6 +3,8 @@
 
     <string name="app_name">Kiosker</string>
     <string name="app_name_settings">Settings</string>
+    <string name="app_name_log">Log</string>
+    <string name="app_name_show_settings">Show Settings</string>
 
     <string name="icon_back">&#xf060;</string>
     <string name="icon_forward">&#xf061;</string>

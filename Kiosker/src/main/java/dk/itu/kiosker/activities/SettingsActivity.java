@@ -16,7 +16,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
@@ -67,6 +66,19 @@ public class SettingsActivity extends Activity {
             }
         });
 
+        Button showSettingsButton = (Button) findViewById(R.id.showSettingsButton);
+        showSettingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(SettingsActivity.this, ShowSettingsActivity.class);
+                startActivity(i);
+            }
+        });
+        if (Constants.settingsText.isEmpty()) {
+            showSettingsButton.setEnabled(false);
+            showSettingsButton.setText("No Settings Loaded");
+        }
+
         Button close = (Button) findViewById(R.id.closeButton);
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,7 +87,7 @@ public class SettingsActivity extends Activity {
             }
         });
 
-        Button settings = (Button) findViewById(R.id.settingsButton);
+        Button settings = (Button) findViewById(R.id.systemSettingsButton);
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,8 +100,21 @@ public class SettingsActivity extends Activity {
         resetDeviceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                resetDevice = true;
-                finish();
+                new AlertDialog.Builder(SettingsActivity.this)
+                        .setTitle("Are you sure?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                resetDevice = true;
+                                finish();
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        }).show();
             }
         });
 
@@ -121,7 +146,7 @@ public class SettingsActivity extends Activity {
         });
 
         EditText baseUrlEditText = (EditText) findViewById(R.id.baseUrlEditText);
-        String baseUrl = getIntent().getStringExtra(Constants.KIOSKER_JSON_BASE_URL_ID);;
+        String baseUrl = getIntent().getStringExtra(Constants.KIOSKER_JSON_BASE_URL_ID);
         baseUrlEditText.setText(baseUrl);
 
         Button saveBaseUrlButton = (Button) findViewById(R.id.saveBaseUrlButton);
@@ -131,9 +156,6 @@ public class SettingsActivity extends Activity {
                 finish();
             }
         });
-
-        TextView tv = (TextView) findViewById(R.id.settingsTextView);
-        tv.setText(Constants.settingsText);
 
         // Let all views accept touch.
         allowTouches(findViewById(R.id.settingsMainLayout));
@@ -266,8 +288,21 @@ public class SettingsActivity extends Activity {
     }
 
     public void killApp(View v) {
-        Constants.killApp(this);
-        finish();
+        new AlertDialog.Builder(this)
+                .setTitle("Are you sure?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Constants.killApp(SettingsActivity.this);
+                        finish();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).show();
     }
 
     @Override
@@ -307,8 +342,20 @@ public class SettingsActivity extends Activity {
     }
 
     public void clearWifiAndReboot(View view) {
-        ClearWifiFiles.RemoveSystemLevelWifiFiles(this);
-        ClearWifiFiles.RebootDevice(this);
+        new AlertDialog.Builder(this)
+                .setTitle("Are you sure?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        ClearWifiFiles.RemoveSystemLevelWifiFiles(SettingsActivity.this);
+                        ClearWifiFiles.RebootDevice(SettingsActivity.this);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
+                    }
+                }).show();
     }
 }
