@@ -99,7 +99,7 @@ public class SettingsController {
      * successfully downloads and parses the online settings.
      */
     public void loadSafeSettings() {
-        Log.d(Constants.TAG, "Loading default settings.");
+        Log.d(Constants.TAG, "Loading safe settings.");
         handleSettings(LocalSettings.getSafeJson(kioskerActivity), true);
     }
 
