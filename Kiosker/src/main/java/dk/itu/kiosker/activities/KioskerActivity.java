@@ -99,7 +99,7 @@ public class KioskerActivity extends Activity {
 
         if (!Constants.isNetworkAvailable(this)) {
             statusUpdater.updateMainStatus("No internet");
-            statusUpdater.updateSubStatus("Please refresh from settings. Auto retry in 30 seconds.");
+            statusUpdater.updateSubStatus("Retrying in 30 seconds.");
             noInternetSubscriber = new Subscriber<Long>() {
                 @Override
                 public void onCompleted() {
@@ -266,7 +266,11 @@ public class KioskerActivity extends Activity {
     }
 
     public void handleSettings(LinkedHashMap currentSettings, boolean baseSettings) {
-        settingsController.handleSettings(currentSettings, baseSettings);
+        if (currentSettings.isEmpty()) {
+            updateMainStatus("No JSON Found");
+            updateSubStatus("Please check your settings");
+            createSecretMenuButton();
+        } else settingsController.handleSettings(currentSettings, baseSettings);
     }
 
     public void loadSafeSettings() {

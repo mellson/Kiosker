@@ -3,6 +3,7 @@ package dk.itu.kiosker.utils;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.provider.Settings;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,5 +76,18 @@ public class WifiController {
         int netId = wifiManager.addNetwork(config);
         wifiManager.saveConfiguration();
         wifiManager.enableNetwork(netId, true);
+    }
+
+    /**
+     * Gets the state of Airplane Mode.
+     *
+     * @param context
+     * @return true if enabled.
+     */
+    private static boolean isAirplaneModeOn(Context context) {
+
+        return Settings.Global.getInt(context.getContentResolver(),
+                Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+
     }
 }
