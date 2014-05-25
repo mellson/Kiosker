@@ -27,6 +27,7 @@ import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.ClearWifiFiles;
+import dk.itu.kiosker.utils.WifiController;
 
 
 public class SettingsActivity extends Activity {
@@ -285,6 +286,23 @@ public class SettingsActivity extends Activity {
         Constants.restartApp(this);
         Constants.setBoolean(this, true, Constants.KIOSKER_RESET_WEBCACHE);
         finish();
+    }
+
+    public void crashAndSendMac(View v) {
+        new AlertDialog.Builder(this)
+                .setTitle("Are you sure - this will crash the app?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        WifiController.sendMacAddressToCrashlytics(SettingsActivity.this);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).show();
     }
 
     public void killApp(View v) {

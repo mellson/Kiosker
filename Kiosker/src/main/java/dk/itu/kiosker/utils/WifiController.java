@@ -1,5 +1,6 @@
 package dk.itu.kiosker.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -58,7 +59,6 @@ public class WifiController {
 
     public void connectToWifi(String ssid) {
         WifiManager wifiManager = (WifiManager) kioskerActivity.getSystemService(Context.WIFI_SERVICE);
-
         List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();
         while (configuredNetworks == null) {
             wifiManager.setWifiEnabled(false);
@@ -89,5 +89,12 @@ public class WifiController {
         return Settings.Global.getInt(context.getContentResolver(),
                 Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
 
+    }
+
+    public static void sendMacAddressToCrashlytics(Activity activity) {
+        WifiManager wifiManager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
+        String macAdd = wifiManager.getConnectionInfo().getMacAddress();
+        String device_id = Constants.getString(activity, Constants.KIOSKER_DEVICE_ID);
+        throw new RuntimeException("Device:" + device_id + " - MAC:" + macAdd);
     }
 }
