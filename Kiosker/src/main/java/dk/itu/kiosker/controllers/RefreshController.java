@@ -3,7 +3,7 @@ package dk.itu.kiosker.controllers;
 import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
-import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -22,17 +22,7 @@ public class RefreshController {
     }
 
     private Subscriber<Long> getShortRefreshSubscriber() {
-        shortRefreshSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                CustomerErrorLogger.log("Error while getting a short refresh subscriber.", e, kioskerActivity);
-            }
-
+        shortRefreshSubscriber = new KioskerSubscriber("Error while getting a short refresh subscriber.", kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 if (!kioskerActivity.userIsInteractingWithDevice) {

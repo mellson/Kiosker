@@ -20,8 +20,8 @@ import dk.itu.kiosker.controllers.SettingsController;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.models.LocalSettings;
 import dk.itu.kiosker.models.OnlineSettings;
-import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.Pinger;
 import dk.itu.kiosker.utils.WifiController;
 import rx.Observable;
@@ -100,16 +100,7 @@ public class KioskerActivity extends Activity {
         if (!Constants.isNetworkAvailable(this)) {
             statusUpdater.updateMainStatus("No internet");
             statusUpdater.updateSubStatus("Retrying in 30 seconds.");
-            noInternetSubscriber = new Subscriber<Long>() {
-                @Override
-                public void onCompleted() {
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    CustomerErrorLogger.log("Error while retrying internet connection.", e, KioskerActivity.this);
-                }
-
+            noInternetSubscriber = new KioskerSubscriber("Error while retrying internet connection.", this) {
                 @Override
                 public void onNext(Long aLong) {
                     refreshDevice();

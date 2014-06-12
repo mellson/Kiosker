@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -21,8 +21,8 @@ import rx.android.schedulers.AndroidSchedulers;
 class SoundController {
     private final Context context;
     private final ArrayList<Subscriber> subscribers;
-    private Subscriber<Integer> quietHoursStartTimeSubscriber;
-    private Subscriber<Integer> quietHoursStopTimeSubscriber;
+    private Subscriber<Long> quietHoursStartTimeSubscriber;
+    private Subscriber<Long> quietHoursStopTimeSubscriber;
     private Activity kioskerActivity;
 
     public SoundController(Context context, ArrayList<Subscriber> subscribers, KioskerActivity kioskerActivity) {
@@ -38,7 +38,7 @@ class SoundController {
             return;
         }
         int volume = SettingsExtractor.getInteger(settings, "volume");
-        int standardVolume = volume > 0 ? volume : 50;
+        final int standardVolume = volume > 0 ? volume : 50;
         setVolume(standardVolume);
         String quietHoursStartTime = SettingsExtractor.getString(settings, "quietHoursStartTime");
         String quietHoursStopTime = SettingsExtractor.getString(settings, "quietHoursStopTime");
@@ -46,7 +46,7 @@ class SoundController {
             Time startTime = new Time(quietHoursStartTime);
 
             // Creating a simple observable we can define a task on.
-            Observable<Integer> startObservable = Observable.from(1);
+            Observable<Long> startObservable = Observable.from(1L);
 
             if (quietHoursStartTimeSubscriber != null) {
                 quietHoursStartTimeSubscriber.unsubscribe();
@@ -54,7 +54,13 @@ class SoundController {
             }
 
             // Create a subscriber that will set the volume to 0.
-            quietHoursStartTimeSubscriber = getVolumeSubscriber(0);
+            quietHoursStartTimeSubscriber = new KioskerSubscriber("Error while setting volume.", kioskerActivity) {
+                @Override
+                public void onNext(Long aLong) {
+                    Log.d(Constants.TAG, String.format("Setting volume to %d%%.", 0));
+                    setVolume(0);
+                }
+            };
 
             // Add the subscriber to our list subscribers.
             subscribers.add(quietHoursStartTimeSubscriber);
@@ -67,12 +73,18 @@ class SoundController {
 
             // Repeat the above tasks for the stop time.
             Time stopTime = new Time(quietHoursStopTime);
-            Observable<Integer> stopObservable = Observable.from(1);
+            Observable<Long> stopObservable = Observable.from(1L);
             if (quietHoursStopTimeSubscriber != null) {
                 quietHoursStopTimeSubscriber.unsubscribe();
                 subscribers.remove(quietHoursStopTimeSubscriber);
             }
-            quietHoursStopTimeSubscriber = getVolumeSubscriber(standardVolume);
+            quietHoursStopTimeSubscriber = new KioskerSubscriber("Error while setting volume.", kioskerActivity) {
+                @Override
+                public void onNext(Long aLong) {
+                    Log.d(Constants.TAG, String.format("Setting volume to %d%%.", standardVolume));
+                    setVolume(0);
+                }
+            };
             subscribers.add(quietHoursStopTimeSubscriber);
             stopObservable
                     .delaySubscription(stopTime.secondsUntil(), TimeUnit.SECONDS)
@@ -81,28 +93,9 @@ class SoundController {
 
             // If we are already in the quiet hours turn down the volume
             if (Time.isNowBetweenTheseTimes(startTime, stopTime)) {
-                quietHoursStartTimeSubscriber.onNext(0);
+                quietHoursStartTimeSubscriber.onNext(0L);
             }
         }
-    }
-
-    private Subscriber<Integer> getVolumeSubscriber(final int volume) {
-        return new Subscriber<Integer>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                CustomerErrorLogger.log("Error while setting volume.", e, kioskerActivity);
-            }
-
-            @Override
-            public void onNext(Integer integer) {
-                Log.d(Constants.TAG, String.format("Setting volume to %d%%.", volume));
-                setVolume(volume);
-            }
-        };
     }
 
     private void setVolume(int volume) {

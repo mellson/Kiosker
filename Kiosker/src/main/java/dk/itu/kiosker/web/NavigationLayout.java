@@ -3,7 +3,6 @@ package dk.itu.kiosker.web;
 import android.animation.Animator;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -147,16 +147,7 @@ public class NavigationLayout extends LinearLayout {
     }
 
     private Subscriber<Long> getNavigationHideSubscriber() {
-        navigationHideSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while trying to hide navigation controls.", e);
-            }
-
+        navigationHideSubscriber = new KioskerSubscriber("Error while trying to hide navigation controls.", kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 hideNavigation();

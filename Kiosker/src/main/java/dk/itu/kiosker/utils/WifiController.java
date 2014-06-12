@@ -37,17 +37,7 @@ public class WifiController {
         if (wifiConnectSubscriber != null && !wifiConnectSubscriber.isUnsubscribed())
             wifiConnectSubscriber.unsubscribe();
 
-        wifiConnectSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                CustomerErrorLogger.log("Error while trying to connect to " + SSID, e, kioskerActivity);
-            }
-
+        wifiConnectSubscriber = new KioskerSubscriber("Error while trying to connect to " + SSID, kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 if (!Constants.isNetworkAvailable(kioskerActivity))

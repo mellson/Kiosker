@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.R;
 import dk.itu.kiosker.controllers.HardwareController;
 import dk.itu.kiosker.models.Constants;
-import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -44,18 +44,7 @@ public class LogActivity extends Activity {
                     new InputStreamReader(process.getInputStream()));
             tv = (TextView) findViewById(R.id.logTextView);
             tv.setText("Getting log, please be patient.");
-
-            final Subscriber<Long> updateSubscriber = new Subscriber<Long>() {
-                @Override
-                public void onCompleted() {
-
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    CustomerErrorLogger.log("Error while updating log update text.", e, LogActivity.this);
-                }
-
+            final Subscriber<Long> updateSubscriber = new KioskerSubscriber("Error while updating log update text.", this) {
                 @Override
                 public void onNext(Long aLong) {
                     tv.setText(tv.getText() + ".");

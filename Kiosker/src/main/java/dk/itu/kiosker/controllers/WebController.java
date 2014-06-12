@@ -20,6 +20,7 @@ import dk.itu.kiosker.activities.SettingsActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.IntentHelper;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
@@ -327,16 +328,7 @@ public class WebController {
             reloadSubscriber.unsubscribe();
             subscribers.remove(reloadSubscriber);
         }
-        reloadSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e(Constants.TAG, "Error while reloading web view.", e);
-            }
-
+        reloadSubscriber = new KioskerSubscriber("Error while reloading web view.", kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 String url = webView.getUrl();

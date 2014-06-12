@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.CustomerErrorLogger;
+import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.Time;
 import rx.Observable;
@@ -118,16 +119,7 @@ class StandbyController {
     }
 
     private Subscriber<Long> getStandbySubscriber(final Boolean startStandby) {
-        Subscriber<Long> subscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                CustomerErrorLogger.log("Error while trying to start standby subscriber.", e, kioskerActivity);
-            }
-
+        Subscriber<Long> subscriber = new KioskerSubscriber("Error while trying to start standby subscriber.", kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 if (startStandby) {

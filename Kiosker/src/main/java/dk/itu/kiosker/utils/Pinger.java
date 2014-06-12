@@ -23,17 +23,7 @@ public class Pinger {
     private static Subscriber<? super Long> getPingSubscriber(final KioskerActivity kioskerActivity) {
         if (pingSubscriber != null && !pingSubscriber.isUnsubscribed())
             pingSubscriber.unsubscribe();
-        pingSubscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                CustomerErrorLogger.log("Error while trying to ping.", e, kioskerActivity);
-            }
-
+        pingSubscriber = new KioskerSubscriber("Error while trying to ping.", kioskerActivity) {
             @Override
             public void onNext(Long aLong) {
                 if (kioskerActivity.currentlyInStandbyPeriod)
@@ -44,7 +34,7 @@ public class Pinger {
                     randomInt += random.nextInt(9);
                 int version = 0;
                 try {
-                     version = kioskerActivity.getPackageManager().getPackageInfo(kioskerActivity.getPackageName(), 0).versionCode;
+                    version = kioskerActivity.getPackageManager().getPackageInfo(kioskerActivity.getPackageName(), 0).versionCode;
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }

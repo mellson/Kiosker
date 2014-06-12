@@ -106,6 +106,7 @@ public class Constants {
         SharedPreferences.Editor editor = activity.getSharedPreferences(key, Context.MODE_PRIVATE).edit();
         editor.putString(key, string);
         editor.apply();
+        editor.commit();
     }
 
     public static boolean getBoolean(Activity activity, String key) {
