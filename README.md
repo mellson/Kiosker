@@ -1,17 +1,17 @@
 Kiosker
 =======
 ## Outline
-[Overview](#Overview)
+[Overview](#overview)
 
-[Lock](#Lock)
+[Lock](#lock)
 
-[JSON settings](#JSON settings)
+[JSON settings](#json-settings)
 
-[Settings rundown](#Settings rundown)
+[Settings rundown](#settings-rundown)
 
-[Kiosker Watchdog](#Kiosker Watchdog)
+[Kiosker Watchdog](#kiosker-watchdog)
 
-[Suggested configuration for Nexus 7 devices](#Suggested configuration for Nexus 7 devices)
+[Suggested configuration for Nexus 7 devices](#suggested-configuration-for-nexus-7-devices)
 
 ## Overview
 Kiosker lets you create an app based on Android's webview.
