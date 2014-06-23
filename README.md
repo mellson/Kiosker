@@ -1,5 +1,17 @@
 Kiosker
 =======
+## Outline
+[Overview](#Overview)
+
+[Lock](#Lock)
+
+[JSON settings](#JSON settings)
+
+[Settings rundown](#Settings rundown)
+
+[Kiosker Watchdog](#Kiosker Watchdog)
+
+[Suggested configuration for Nexus 7 devices](#Suggested configuration for Nexus 7 devices)
 
 ## Overview
 Kiosker lets you create an app based on Android's webview.
@@ -18,7 +30,7 @@ You can still control the app via an admin settings menu.
 This menu can be password protected and you tap 5 times on the screen to access it.
 
 
-## JSON Settings
+## JSON settings
 When you start the app for the first time you need to provide a base url.
 This url is used to download settings from a JSON file.
 You can provide two JSON files, one for base settings and one for device specific settings.
@@ -104,3 +116,39 @@ If it is not it will be started again by the watchdog app.
 This app in also available on the play store [play store](https://play.google.com/store/apps/details?id=dk.itu.mellson.kioskerwatchdog).
 
 And the source code is available on [github](https://github.com/mofus/Kiosker-Watchdog).
+
+## Suggested configuration for Nexus 7 devices
+1. Install min. Android 4.4.2.
+
+2. Root device (with Nexus Root Toolkit - http://www.wugfresh.com/nrt/)
+
+3. Complete root installation by installing busy box.
+
+4. Configure SuperSU to accept privileges across app updates.
+
+5. Configure SuperSU to not show toasts.
+
+6. Turn off screen lock on device.
+
+7. Turn off daydream under display on device.
+
+8. Set sleep time of device to 1 min.
+
+9. Set brightness to manual and turn it all the way up.
+
+10. Boot into fastboot and change powermode (so that device turns on when it is plugged into a charger)
+    - Change the powermode by running this command: fastboot oem off-mode-charge 0
+
+11. Turn off USB debugging.
+
+12. Install Kiosker from the Play App store or from your own build.
+
+13. Install KioskerWatchdog from the Play App store or from your own build.
+
+14. Configure Kiosker with a base url.
+
+15. Configure the specific deviceid if you have more devices.
+
+16. Set Kiosker as the default launcher.
+
+17. Start KioskerWatchdog.
