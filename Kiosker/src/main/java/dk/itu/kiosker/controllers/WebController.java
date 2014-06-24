@@ -24,6 +24,7 @@ import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import dk.itu.kiosker.utils.WebHelper;
 import dk.itu.kiosker.web.KioskerWebChromeClient;
+import dk.itu.kiosker.web.KioskerWebView;
 import dk.itu.kiosker.web.KioskerWebViewClient;
 import dk.itu.kiosker.web.NavigationLayout;
 import dk.itu.kiosker.web.WebPage;
@@ -38,13 +39,12 @@ public class WebController {
     private final KioskerActivity kioskerActivity;
     private final ArrayList<Subscriber> subscribers;
     // Has our main web view (home) at index 0 and the sites at index 1
-    private ArrayList<WebView> webViews;
+    private ArrayList<KioskerWebView> webViews;
     private ArrayList<NavigationLayout> navigationLayouts;
     private Date lastTap;
     private ArrayList<WebPage> homeWebPages;
     private ArrayList<WebPage> sitesWebPages;
     private int reloadPeriodMins;
-    private int errorReloadMins;
     private boolean fullScreenMode;
     private ScreenSaverController screenSaverController;
     private Subscriber<Long> secondaryCycleSubscriber;
@@ -54,6 +54,7 @@ public class WebController {
     private int resetToHomeMins;
     private int defaultResetToHomeMins = 2;
     private Subscriber<Long> resetToHomeSubscriber;
+    private LinkedHashMap settings;
 
     public WebController(KioskerActivity kioskerActivity, ArrayList<Subscriber> subscribers) {
         this.kioskerActivity = kioskerActivity;
@@ -66,8 +67,9 @@ public class WebController {
     public void handleWebSettings(LinkedHashMap settings) {
         kioskerActivity.cleanUpMainView(); // Make sure that we don't have multiple webviews
 
+        this.settings = settings;
+
         reloadPeriodMins = SettingsExtractor.getInteger(settings, "reloadPeriodMins");
-        errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
 
         resetToHomeMins = SettingsExtractor.getInteger(settings, "resetToHomeMins");
         resetToHomeMins = resetToHomeMins <= 0 ? defaultResetToHomeMins : resetToHomeMins;
@@ -171,7 +173,7 @@ public class WebController {
      * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
     protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading, boolean clearCache) {
-        WebView webView = getWebView();
+        KioskerWebView webView = getWebView(webPage);
         if (clearCache) webView.clearCache(true);
         webViews.add(webView);
         webView.loadUrl(webPage.url);
@@ -209,12 +211,15 @@ public class WebController {
      * Returns a WebView with a specified weight.
      *
      * @return a WebView with the specified weight.
+     * @param webPage
      */
     @SuppressLint("SetJavaScriptEnabled")
-    private WebView getWebView() {
+    private KioskerWebView getWebView(WebPage webPage) {
         WebView.setWebContentsDebuggingEnabled(true);
-        final WebView webView = new WebView(kioskerActivity);
-        webView.setWebViewClient(new KioskerWebViewClient(errorReloadMins, kioskerActivity));
+        final KioskerWebView webView = new KioskerWebView(kioskerActivity);
+        KioskerWebViewClient client = new KioskerWebViewClient(settings, kioskerActivity, webPage);
+        webView.client = client;
+        webView.setWebViewClient(client);
         webView.setWebChromeClient(new KioskerWebChromeClient());
 
         // Disable hardware acceleration because of rendering bug in Kit Kat. Sometimes it would throw "W/AwContents﹕ nativeOnDraw failed; clearing to background color." errors.
@@ -277,8 +282,9 @@ public class WebController {
 
     public void clearWebViews() {
         if (webViews != null) {
-            for (WebView webView : webViews) {
+            for (KioskerWebView webView : webViews) {
                 webView.loadUrl("about:blank");
+                webView.stopSensors();
                 webView.destroy();
             }
         }
