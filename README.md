@@ -2,11 +2,12 @@ Kiosker
 =======
 ## Overview
 Kiosker lets you create an app based on Android's webview.
-It is highly configurable via downloaded JSON settings you provide yourself.
+It is highly configurable via JSON settings you provide.
 
 You can find the app on the [play store](https://play.google.com/store/apps/details?id=dk.itu.kiosker).
 
-This has been designed to work on the Nexus 7 (2013) tablet, but should also work fine on other Android devices.
+Kiosker been designed to work on the Nexus 7 (2013) tablet, but should also work fine on other Android devices.
+
 This source code is an Android Studio project.
 Please report any issues you find.
 
