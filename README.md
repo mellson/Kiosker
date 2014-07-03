@@ -1,8 +1,8 @@
 Kiosker
 =======
 ## Overview
-Kiosker lets you create an app based on Android's webview.
-It is highly configurable via JSON settings you provide.
+Kiosker lets you create a kiosk application where you provide content via a webpage.
+It is highly configurable through multiple JSON settings.
 
 You can find the app on the [play store](https://play.google.com/store/apps/details?id=dk.itu.kiosker).
 

@@ -17,7 +17,7 @@ public class Pinger {
     private static Subscriber<Long> pingSubscriber;
 
     public static void start(KioskerActivity kioskerActivity) {
-        Observable.timer(5, TimeUnit.SECONDS).repeat().subscribe(getPingSubscriber(kioskerActivity));
+        Observable.interval(5, TimeUnit.SECONDS).subscribe(getPingSubscriber(kioskerActivity));
     }
 
     private static Subscriber<? super Long> getPingSubscriber(final KioskerActivity kioskerActivity) {
