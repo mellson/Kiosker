@@ -57,23 +57,6 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
             bluetoothDiscoveryInterval = 60;
         this.sensorManager = (SensorManager) kioskerActivity.getSystemService(Context.SENSOR_SERVICE); // 0 - fastest, 1, 2, 3 - slowest (normal)
         this.deviceId = "\"" + Constants.getString(kioskerActivity, Constants.KIOSKER_DEVICE_ID) + "\"";
-        if (bluetoothSensorReceivers.contains(webPage.title))
-            this.bluetoothUpdateReceiver = new BroadcastReceiver() {
-                public void onReceive(Context context, Intent intent) {
-                    String action = intent.getAction();
-                    // When discovery finds a device
-                    if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                        // Get the BluetoothDevice object from the Intent
-                        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                        // Add the name and address to an array adapter to show in a ListView
-                        String deviceInfo = device.getName() + " - " + device.getAddress();
-                        if (!bluetoothDevices.contains(deviceInfo))
-                            bluetoothDevices.add(deviceInfo);
-                        view.loadUrl("javascript:bluetoothSensorUpdate(" + bluetoothJSArray() + "," + deviceId + ")");
-                        if (!mBluetoothAdapter.isDiscovering()) mBluetoothAdapter.startDiscovery();
-                    }
-                }
-            };
     }
 
     // Convert the bluetooth devices arraylist to a format that javascript can use
@@ -133,6 +116,21 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
         }
 
         if (bluetoothSensorReceivers.contains(webPage.title)) {
+            this.bluetoothUpdateReceiver = new BroadcastReceiver() {
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    // When discovery finds a device
+                    if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                        // Get the BluetoothDevice object from the Intent
+                        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                        // Add the name and address to an array adapter to show in a ListView
+                        String deviceInfo = device.getName() + " - " + device.getAddress();
+                        if (!bluetoothDevices.contains(deviceInfo)) bluetoothDevices.add(deviceInfo);
+                        view.loadUrl("javascript:bluetoothSensorUpdate(" + bluetoothJSArray() + "," + deviceId + ")");
+                    }
+                }
+            };
+
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
                 Log.d(Constants.TAG, "No Bluetooth Radio");
