@@ -12,3 +12,8 @@ Kiosker been designed to work on the Nexus 7 (2013) tablet, but should also work
 
 This source code is an Android Studio project.
 Please report any issues you find.
+
+### Entering the settings screen
+Inorder to get to the settings screen on a running Kiosker app you need to tap 5 times on the screen.
+This will bring up the settings screen protected by a password if you have set one.
+You can change the number of taps of method of opening the settings in [WebController.java](https://github.com/mofus/Kiosker/blob/master/Kiosker/src/main/java/dk/itu/kiosker/controllers/WebController.java)
