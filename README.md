@@ -16,4 +16,4 @@ Please report any issues you find.
 ### Entering the settings screen
 Inorder to get to the settings screen on a running Kiosker app you need to tap 5 times on the screen.
 This will bring up the settings screen protected by a password if you have set one.
-You can change the number of taps of method of opening the settings in [WebController.java](https://github.com/mofus/Kiosker/blob/master/Kiosker/src/main/java/dk/itu/kiosker/controllers/WebController.java)
+You can change the number of taps of method of opening the settings in method `addTapToSettings` from the file  [WebController.java](https://github.com/mofus/Kiosker/blob/master/Kiosker/src/main/java/dk/itu/kiosker/controllers/WebController.java)
