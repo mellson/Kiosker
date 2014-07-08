@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.utils.CustomerErrorLogger;
 import dk.itu.kiosker.utils.KioskerSubscriber;
 import dk.itu.kiosker.utils.SettingsExtractor;
 import rx.Observable;
@@ -91,7 +92,7 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
             firstPageLoad = true;
         }
         // Only add the light sensor if this web page is one of the receivers.
-        if (lightSensorReceivers.contains(webPage.title)) {
+        if (!lightSensorReceivers.isEmpty() && lightSensorReceivers.contains(webPage.title)) {
             int sensorDelay;
             switch (lightSensorDelaySpeed) {
                 case 0:
@@ -115,7 +116,7 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
 
         }
 
-        if (bluetoothSensorReceivers.contains(webPage.title)) {
+        if (!bluetoothSensorReceivers.isEmpty() && bluetoothSensorReceivers.contains(webPage.title)) {
             this.bluetoothUpdateReceiver = new BroadcastReceiver() {
                 public void onReceive(Context context, Intent intent) {
                     String action = intent.getAction();
@@ -188,10 +189,12 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
         // If this is a light sensor receiver, then unregister it before a page load
         if (lightSensorReceivers != null && lightSensorReceivers.contains(webPage.title) && sensorManager != null)
             sensorManager.unregisterListener(this);
-        if (bluetoothSensorReceivers.contains(webPage.title))
+        if (bluetoothSensorReceivers.contains(webPage.title)) try {
             kioskerActivity.unregisterReceiver(bluetoothUpdateReceiver);
+        } catch (IllegalArgumentException e) {
+            CustomerErrorLogger.log("Error while trying to unregister bluetooth receiver. Known Android bug.", e, kioskerActivity);
+        }
     }
-
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
