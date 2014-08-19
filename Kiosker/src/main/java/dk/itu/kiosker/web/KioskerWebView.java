@@ -11,6 +11,6 @@ public class KioskerWebView extends WebView {
     }
 
     public void stopSensors() {
-        client.stopSensors();
+        client.stopLightSensor();
     }
 }

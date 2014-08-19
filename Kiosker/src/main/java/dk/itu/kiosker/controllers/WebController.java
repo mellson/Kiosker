@@ -173,7 +173,7 @@ public class WebController {
      * @param allowReloading should this be reloaded according to the reloadPeriodMins from the settings?
      */
     protected void setupWebView(boolean homeView, WebPage webPage, float weight, boolean allowReloading, boolean clearCache) {
-        KioskerWebView webView = getWebView(webPage);
+        KioskerWebView webView = getWebView();
         if (clearCache) webView.clearCache(true);
         webViews.add(webView);
         webView.loadUrl(webPage.url);
@@ -211,13 +211,12 @@ public class WebController {
      * Returns a WebView with a specified weight.
      *
      * @return a WebView with the specified weight.
-     * @param webPage
      */
     @SuppressLint("SetJavaScriptEnabled")
-    private KioskerWebView getWebView(WebPage webPage) {
+    private KioskerWebView getWebView() {
         WebView.setWebContentsDebuggingEnabled(true);
         final KioskerWebView webView = new KioskerWebView(kioskerActivity);
-        KioskerWebViewClient client = new KioskerWebViewClient(settings, kioskerActivity, webPage);
+        KioskerWebViewClient client = new KioskerWebViewClient(settings, kioskerActivity);
         webView.client = client;
         webView.setWebViewClient(client);
         webView.setWebChromeClient(new KioskerWebChromeClient());
