@@ -1,18 +1,19 @@
 package dk.itu.kiosker.web;
 
-import android.bluetooth.BluetoothDevice;
 import android.webkit.JavascriptInterface;
 
-import java.util.ArrayList;
-import java.util.Set;
+import org.json.JSONArray;
 
-import dk.itu.kiosker.utils.Tuple;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+import dk.itu.kiosker.utils.BluetoothDeviceTuple;
 
 /**
  * This class is encapsulating the bridge between our applications sensors and javascript.
  */
 public class JSSensorBridge {
-    public ArrayList<Tuple<String, String>> bluetoothDevices = new ArrayList<>();
+    public ArrayList<BluetoothDeviceTuple> bluetoothDevices = new ArrayList<>();
     public KioskerWebViewClient kioskerWebViewClient;
 
     public JSSensorBridge(KioskerWebViewClient kioskerWebViewClient) {
@@ -30,8 +31,11 @@ public class JSSensorBridge {
     }
 
     @JavascriptInterface
-    public Set<BluetoothDevice> getPairedDevices() {
-        return kioskerWebViewClient.getPairedDevices();
+    public String getPairedDevices() {
+        ArrayList<String> res = new ArrayList<>();
+        for (BluetoothDeviceTuple bluetoothDevice : kioskerWebViewClient.getPairedDevices())
+            res.add(bluetoothDevice.toString());
+        return new JSONArray(res).toString();
     }
 
     @JavascriptInterface

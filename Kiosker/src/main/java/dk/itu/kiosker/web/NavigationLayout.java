@@ -128,7 +128,7 @@ public class NavigationLayout extends LinearLayout {
     }
 
     public void showNavigation() {
-        // The first time a user tries to navigate we set the home url to the current one on display.
+        // The first time a user tries to navigate we set the home url to the current name on display.
         if (firstTimeHere) {
             homeUrl = webView.getUrl();
             Constants.setString(kioskerActivity, homeUrl, Constants.KIOSKER_HOME_URL_ID);

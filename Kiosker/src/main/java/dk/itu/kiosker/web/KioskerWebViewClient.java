@@ -14,6 +14,7 @@ import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
 import dk.itu.kiosker.utils.SettingsExtractor;
-import dk.itu.kiosker.utils.Tuple;
+import dk.itu.kiosker.utils.BluetoothDeviceTuple;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -39,15 +40,28 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
     private JSSensorBridge jsSensorBridge;
     private WebView view;
 
-    public KioskerWebViewClient(LinkedHashMap settings, KioskerActivity kioskerActivity) {
+    public KioskerWebViewClient(LinkedHashMap settings, final KioskerActivity kioskerActivity) {
         this.errorReloadMins = SettingsExtractor.getInteger(settings, "errorReloadMins");
         this.kioskerActivity = kioskerActivity;
         this.addSensorBridge = SettingsExtractor.getBoolean(settings, "addSensorBridge");
         this.sensorManager = (SensorManager) kioskerActivity.getSystemService(Context.SENSOR_SERVICE);
         this.deviceId = "\"" + Constants.getString(kioskerActivity, Constants.KIOSKER_DEVICE_ID) + "\"";
 
-        // Init the bridge object if we need it
-        if (addSensorBridge) jsSensorBridge = new JSSensorBridge(this);
+        // Init the bridge object if we need it along with the bluetooth adaptor
+        if (addSensorBridge) {
+            jsSensorBridge = new JSSensorBridge(this);
+
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            kioskerActivity.registerReceiver(new BroadcastReceiver() {
+                public void onReceive(Context context, Intent intent) {
+                    if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+                        // When a discovery has finished remove the broadcast receiver used in a scan
+                        kioskerActivity.unregisterReceiver(bluetoothUpdateReceiver);
+                    }
+                }
+            }, filter);
+        }
     }
 
     // you tell the web client you want to catch when a url is about to load
@@ -79,8 +93,7 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
         }
     }
 
-    public void startBluetoothDiscovery() {
-        BroadcastReceiver bluetoothUpdateReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver bluetoothUpdateReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 // When discovery finds a device
@@ -88,28 +101,34 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
                     // Get the BluetoothDevice object from the Intent
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     // Add the name and address to an array adapter to show in a ListView
-                    Tuple<String, String> deviceInfo = new Tuple<>(device.getName(), device.getAddress());
-                    view.loadUrl("javascript:bluetoothSensorUpdate(" + deviceInfo + ")"); // TODO færdiggør den her
+                    BluetoothDeviceTuple deviceInfo = new BluetoothDeviceTuple(device.getName(), device.getAddress());
+                    view.loadUrl("javascript:bluetoothSensorUpdate(" + deviceInfo + ")");
                 }
             }
         };
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+    public void startBluetoothDiscovery() {
         if (mBluetoothAdapter == null) Log.d(Constants.TAG, "No Bluetooth Radio");
         else {
             if (!mBluetoothAdapter.isEnabled()) mBluetoothAdapter.enable();
-            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            kioskerActivity.registerReceiver(bluetoothUpdateReceiver, filter);
+            if (mBluetoothAdapter.isDiscovering())
+                mBluetoothAdapter.cancelDiscovery();
             if (!mBluetoothAdapter.isDiscovering()) {
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                kioskerActivity.registerReceiver(bluetoothUpdateReceiver, filter);
                 mBluetoothAdapter.startDiscovery();
-                jsSensorBridge.bluetoothDevices.clear();
             }
         }
     }
 
-    public Set<BluetoothDevice> getPairedDevices() {
+    public ArrayList<BluetoothDeviceTuple> getPairedDevices() {
         if (mBluetoothAdapter == null) Log.d(Constants.TAG, "No Bluetooth Radio");
         else if (!mBluetoothAdapter.isEnabled()) mBluetoothAdapter.enable();
-        return mBluetoothAdapter.getBondedDevices();
+        ArrayList<BluetoothDeviceTuple> pairedDevices = new ArrayList<>();
+        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
+            pairedDevices.add(new BluetoothDeviceTuple(device.getName(), device.getAddress()));
+        }
+        return pairedDevices;
     }
 
     public void setLightSensorDelaySpeed(int lightSensorDelaySpeed) {
@@ -134,6 +153,7 @@ public class KioskerWebViewClient extends WebViewClient implements SensorEventLi
             default:
                 sensorDelay = SensorManager.SENSOR_DELAY_NORMAL;
         }
+        Log.d(Constants.TAG, "Speed of light sensor : " + lightSensorDelaySpeed);
         sensorManager.registerListener(this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT),
                 sensorDelay);
