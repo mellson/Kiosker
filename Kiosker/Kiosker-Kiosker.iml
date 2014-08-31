@@ -86,9 +86,9 @@
     <orderEntry type="library" exported="" name="http-request-5.6" level="project" />
     <orderEntry type="library" exported="" name="jackson-databind-2.4.2" level="project" />
     <orderEntry type="library" exported="" name="jackson-core-2.4.2" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-core-0.20.0" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-android-0.20.2" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-core-0.20.2" level="project" />
     <orderEntry type="library" exported="" name="libGoogleAnalyticsServices" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-android-0.20.0" level="project" />
     <orderEntry type="library" exported="" name="crashlytics-1.1.11" level="project" />
     <orderEntry type="library" exported="" name="converter-jackson-1.6.1" level="project" />
   </component>
