@@ -14,8 +14,8 @@ Kiosker/crashlytics.properties
 
 Kiosker/src/main/res/values/com_crashlytics_export_strings.xml
 
-Kiosker/src/main/java/dk/itu/kiosker/utils/WifiCredentials.java
-
 /build/
 
 /Kiosker/src/main/assets/crashlytics-build.properties
+
+Kiosker/src/main/java/dk/itu/kiosker/models/WifiCredentials.java

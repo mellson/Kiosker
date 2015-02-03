@@ -63,6 +63,9 @@ public class WifiController {
 
         WifiConfiguration config = new WifiConfiguration();
         config.SSID = "\"" + ssid + "\"";
+
+        // If you have downloaded this from the GitHub site you need to create a WifiCredentials Class
+        // containing a static dictionary with your WiFi Password.
         config.preSharedKey = "\""+ WifiCredentials.wifiKeys.get(ssid) +"\"";
         int netId = wifiManager.addNetwork(config);
         wifiManager.saveConfiguration();
