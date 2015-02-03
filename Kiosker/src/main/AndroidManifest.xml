@@ -63,6 +63,7 @@
             android:name="dk.itu.kiosker.activities.ShowSettingsActivity"
             android:label="@string/app_name_show_settings"
             android:screenOrientation="portrait" />
+        <meta-data android:name="com.crashlytics.ApiKey" android:value="bc1999f12fb2d92f53d3160a44aeccd5107a7634"/>
     </application>
 
 </manifest>

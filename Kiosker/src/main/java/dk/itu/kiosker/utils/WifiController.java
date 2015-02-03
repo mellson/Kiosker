@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import dk.itu.kiosker.activities.KioskerActivity;
 import dk.itu.kiosker.models.Constants;
+import dk.itu.kiosker.models.WifiCredentials;
 import rx.Observable;
 import rx.Subscriber;
 

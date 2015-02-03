@@ -12,7 +12,7 @@ repositories {
     maven { url 'http://download.crashlytics.com/maven' }
 }
 
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 apply plugin: 'crashlytics'
 
@@ -30,8 +30,8 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 19
-        versionCode 49
-        versionName "0.49"
+        versionCode 50
+        versionName "0.50"
     }
 
     compileOptions {
@@ -50,7 +50,7 @@ android {
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
         }
